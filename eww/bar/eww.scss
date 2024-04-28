@@ -62,7 +62,6 @@
 .trackerIcons{
   //removes all decoration from the icons
   all: unset;
-  margin-right: 2px;
 }
 
 .trackerMetric slider {
@@ -83,6 +82,22 @@
   border-radius: 50px;
   min-height: 4px;
   min-width: 40px;
+}
+
+.circularMetric{ 
+  all: unset;
+  margin-right:5px;
+}
+
+.circularMetric label{ 
+  margin-right: 3px;
+  font-size: 13px;
+}
+
+.circularMetric circular-progress{ 
+  color: #990033;
+  background-color: #4e4e4e;
+  margin: 1px;
 }
 
 /* BATTERY WIDGETS COLORS */
@@ -115,10 +130,10 @@
 }
 .date {
   color: $color15;
-  font-size: 22px;
+  font-size: 16px;
 }
 
-.cal {
+.calendar {
   font-size: 18px;
   background-color: $color0;
   //background-image: url("images/background.png");
@@ -132,4 +147,17 @@
   opacity: 0;
   margin-top: -20px;
   margin-bottom: -20px;
+}
+
+.fontLarge {
+  font-size:20px;
+}
+
+.margin-separate label{
+    margin-right: 15px;
+    margin-left: 5px;
+}
+
+.margin-separate button{
+    all:unset;
 }

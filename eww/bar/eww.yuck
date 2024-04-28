@@ -18,13 +18,17 @@
 
 
 (defvar date_reveal false)
-(defvar hide "")
+(defvar settings_wheel "⚙")
 (defvar settings_reveal false)
 (defvar day "0")
 (defvar month "0")
 (defvar year "0")
 
 (defvar eww "eww -c $HOME/.config/eww/bar")
+(defvar hide "")
+
+(defpoll wifi_status :interval "1s" "scripts/network --status")
+(defvar wifi_strength 1)
 
 
 ;; ################################################ WIDGETS ##########################################
@@ -34,6 +38,16 @@
   (box :orientation "h" :class "battery"
     (button :class "trackerIcons" label)
     (label :class battery_status :text "${battery_capacity}%")))
+
+;; BATTERY WIDGET TEMPLATE
+(defwidget wifi []
+  (box :orientation "h" :class "margin-separate ${hide}" :space-evenly "false"
+    (button :onclick "iwgtk" :timeout "10s"
+    (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18")
+    )
+    (label :text wifi_status)
+    ))
+
 
 ;; WORKSPACE TRACKER
 (defwidget workspaces []
@@ -75,13 +89,13 @@
           (label
             :valign "fill"
             :class "date"
-            :markup "<span font-size=\"xx-small\">${date}</span>"))))))
+            :markup "<span font-weight=\"light\"> -${date}</span>" ))))))
 
 
 ;; POPUP CALENDAR
 (defwidget popup_calendar []
   (box
-    :class "cal"
+    :class "calendar"
     :orientation "h"
     :valign "fill"
     :halign "fill"
@@ -95,7 +109,7 @@
 )
 
 ;; PROGRESS BAR TEMPLATE
-(defwidget progress_bar [label value onchange ?action]
+(defwidget progress_scale [label value onchange ?action]
   (box :orientation "h" :class "trackerMetric" :space-evenly false
     (button :class "trackerIcons" :onclick action label)
     (scale :min 0
@@ -104,57 +118,69 @@
            :value value
            :onchange onchange)))
 
+;; PROGRESS CIRCLE TEMPLATE
+(defwidget progress_circle [label value] 
+  (box :orientation "h" :class "circularMetric"
+    (label :class "trackerIcons" :text label)
+    (circular-progress 
+      :start-at 50
+      :value value
+      :thickness 3
+      )
+    ))
+
 ;; AUDIO & VOLUME
 (defwidget audio []
   (box :space-evenly false
-    (progress_bar 
+    (progress_scale
       :label microphone_icon
       :value microphone_vol
       :onchange "scripts/audio --set-mic {}"
       :action "scripts/audio --toggle-mic")
-    (progress_bar 
+    (progress_scale
       :label volume_icon
       :value volume_vol
       :onchange "scripts/audio --set-vol {}"
       :action "scripts/audio --toggle-vol")))
 
 (defwidget trackers []
-  (box
-    (progress_bar :label "💾" :value {EWW_RAM.used_mem_perc} :onchange "")
-    (progress_bar :label "💻" :value {round((1 - (EWW_DISK["/"].free / EWW_DISK["/"].total)) * 100,0)} :onchange "")
-  )
+  (box :class "circularMetric ${hide}"
+     (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
+     (progress_circle :label "💻" :value {round((1 - (EWW_DISK["/"].free / EWW_DISK["/"].total)) * 100,0)})
+    )
 )
 
 ;; ADJUSTABLE SETTINGS
 (defwidget settings []
   (eventbox
-    :onhover "${eww} update settings_reveal=true && ${eww} update hide='hide'"
-    :onhoverlost "${eww} update settings_reveal=false && ${eww} update hide=''"
+    :onhover "${eww} update settings_reveal=true && ${eww} update settings_wheel='/ ' && ${eww} update hide='hide'"
+    :onhoverlost "${eww} update settings_reveal=false && ${eww} update settings_wheel='⚙' && ${eww} update hide=''"
     (box
       :class "time_box"
       :space-evenly "false"
       :orientation "h"
       :halign "fill"
       (label :valign "center" 
-        :class "${hide}" 
-        :text "⚙"
+        :class "fontLarge" 
+        :text "${settings_wheel}"
         )
       (revealer
         :reveal settings_reveal
         :transition "slideright"
-        :duration "350ms"
+        :duration "450ms"
         :valign "fill"
         (audio)
         ))))
 
 
 (defwidget full_bar []
-	(box :class "main-container" :space-evenly true :halign "fill"
+	(centerbox :class "main-container" :orientation "h" :halign "true"
     (box :halign "start"  (workspaces))
 		(box :halign "center" (time))
 		(box :halign "end" :space-evenly false
-    (trackers)
-    (settings))))
+      (wifi)
+      (trackers)
+      (settings))))
 
 
 ;; ########################################## WINDOWS #################################################
@@ -163,8 +189,8 @@
 (defwindow bar
 	:monitor 0
 	:windowtype "dock"
-	:geometry (geometry :anchor "top center" :y "7px" :width "50%")
-  :reserve (struts :side "top" :distance "70px")
+	:geometry (geometry :anchor "top center" :y "7px" :hexpand true :halign true :width "40%")
+  ;:reserve (struts :side "top" :distance "70px")
 	:exclusive true
   :stacking "fg"
   :wm-ignore false
