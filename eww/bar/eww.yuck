@@ -1,0 +1,181 @@
+;; ######################################### VARIABLES ##############################################
+
+(deflisten get_layout `bash scripts/show_layout`)
+(deflisten workspaces_list :initial "[]" "scripts/get-workspaces")
+(deflisten current_workspace :initial "[]" "scripts/get-active-workspace")
+(deflisten volume_vol `bash scripts/audio --get-vol`)
+(deflisten microphone_vol `bash scripts/audio --get-mic`)
+
+(defpoll time_tmp :interval "20s" `date +" %a %d %b %R"`)
+
+(defpoll volume_icon :interval "2s" "scripts/audio --get-volicon")
+(defpoll microphone_icon :interval "2s" "scripts/audio --get-micicon")
+
+(defpoll hour :interval "1s" "scripts/time_info --hour")
+(defpoll minutes :interval "1s" "scripts/time_info --minutes")
+(defpoll type :interval "1s" "scripts/time_info --type")
+(defpoll date :interval "1s" "scripts/time_info --date")
+
+
+(defvar date_reveal false)
+(defvar hide "")
+(defvar settings_reveal false)
+(defvar day "0")
+(defvar month "0")
+(defvar year "0")
+
+(defvar eww "eww -c $HOME/.config/eww/bar")
+
+
+;; ################################################ WIDGETS ##########################################
+
+;; BATTERY WIDGET TEMPLATE
+(defwidget battery [label battery_capacity battery_status]
+  (box :orientation "h" :class "battery"
+    (button :class "trackerIcons" label)
+    (label :class battery_status :text "${battery_capacity}%")))
+
+;; WORKSPACE TRACKER
+(defwidget workspaces []
+  (box :class "workspaces" 
+    (label :text "${workspaces_list} ${current_workspace}" :visible false)
+    (for workspace in workspaces_list
+      (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
+        (box :class "default-workspace 
+           ${workspace.id == current_workspace[0] ? "firstScreen" : ""} 
+           ${workspace.id == current_workspace[1] ? "secondScreen" : ""} 
+           ${workspace.id == current_workspace[2] ? "thirdScreen" : ""} 
+           ${workspace.id == current_workspace[3] ? "fourthScreen" : ""} 
+           ${workspace.windows > 0 ? "occupiedWindow" : ""}"
+           (label :text "${workspace.id}"))))))
+
+;; TIME WIDGET
+(defwidget time []
+  (eventbox
+    ;;:tooltip "Calendar"
+    :onhover "${eww} update date_reveal=true"
+    :onhoverlost "${eww} update date_reveal=false"
+    (button
+      :onclick "scripts/popup_calendar"
+      (box
+        :class "time_box"
+        :space-evenly "false"
+        :orientation "h"
+        :valign "center"
+        :halign "fill"
+        (label 
+          :valign "center"
+          :class "time"
+          :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>" )
+        (revealer
+          :reveal date_reveal
+          :transition "slideright"
+          :duration "350ms"
+          :valign "fill"
+          (label
+            :valign "fill"
+            :class "date"
+            :markup "<span font-size=\"xx-small\">${date}</span>"))))))
+
+
+;; POPUP CALENDAR
+(defwidget popup_calendar []
+  (box
+    :class "cal"
+    :orientation "h"
+    :valign "fill"
+    :halign "fill"
+    (calendar
+      :day day
+      :month month
+      :year year
+      :show-details "true"
+      :show-heading "true"
+      :show-day-names "true"))
+)
+
+;; PROGRESS BAR TEMPLATE
+(defwidget progress_bar [label value onchange ?action]
+  (box :orientation "h" :class "trackerMetric" :space-evenly false
+    (button :class "trackerIcons" :onclick action label)
+    (scale :min 0
+           :max 101
+           :active {onchange != ""}
+           :value value
+           :onchange onchange)))
+
+;; AUDIO & VOLUME
+(defwidget audio []
+  (box :space-evenly false
+    (progress_bar 
+      :label microphone_icon
+      :value microphone_vol
+      :onchange "scripts/audio --set-mic {}"
+      :action "scripts/audio --toggle-mic")
+    (progress_bar 
+      :label volume_icon
+      :value volume_vol
+      :onchange "scripts/audio --set-vol {}"
+      :action "scripts/audio --toggle-vol")))
+
+(defwidget trackers []
+  (box
+    (progress_bar :label "💾" :value {EWW_RAM.used_mem_perc} :onchange "")
+    (progress_bar :label "💻" :value {round((1 - (EWW_DISK["/"].free / EWW_DISK["/"].total)) * 100,0)} :onchange "")
+  )
+)
+
+;; ADJUSTABLE SETTINGS
+(defwidget settings []
+  (eventbox
+    :onhover "${eww} update settings_reveal=true && ${eww} update hide='hide'"
+    :onhoverlost "${eww} update settings_reveal=false && ${eww} update hide=''"
+    (box
+      :class "time_box"
+      :space-evenly "false"
+      :orientation "h"
+      :halign "fill"
+      (label :valign "center" 
+        :class "${hide}" 
+        :text "⚙"
+        )
+      (revealer
+        :reveal settings_reveal
+        :transition "slideright"
+        :duration "350ms"
+        :valign "fill"
+        (audio)
+        ))))
+
+
+(defwidget full_bar []
+	(box :class "main-container" :space-evenly true :halign "fill"
+    (box :halign "start"  (workspaces))
+		(box :halign "center" (time))
+		(box :halign "end" :space-evenly false
+    (trackers)
+    (settings))))
+
+
+;; ########################################## WINDOWS #################################################
+
+;; BAR WINDOW
+(defwindow bar
+	:monitor 0
+	:windowtype "dock"
+	:geometry (geometry :anchor "top center" :y "7px" :width "50%")
+  :reserve (struts :side "top" :distance "70px")
+	:exclusive true
+  :stacking "fg"
+  :wm-ignore false
+  
+  (full_bar))
+
+;; CALENDAR WINDOW
+(defwindow calendar
+	:monitor 0
+  :geometry (geometry :x "810" :y "10px" :width "300px" :height "100px")
+  :stacking "fg"
+  :windowtype "dock"
+  :wm-ignore "false"
+  (popup_calendar))

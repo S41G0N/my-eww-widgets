@@ -1,0 +1,17 @@
+#!/bin/bash
+# list monitors in JSON format & Pipe it into jq (JSON processor) & Extract Active Workspace ID of the first monitor [DP-1]
+#hyprctl monitors -j | jq --raw-output .[0].activeWorkspace.id
+
+#Connect to Hyprland Socket & Extract Unbuffered output & Extract workspace
+#Fetch the most recently shown/switched workspace
+#{print $2} -> prints second field of each line
+#socat -u UNIX-CONNECT:/tmp/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock - | stdbuf -o0 awk -F '>>|,' '/^workspace>>/{print $2}'
+
+getWorkspaces(){
+    ACTIVE_WINDOW=$(hyprctl monitors -j | jq 'map({key: .id | tostring, value: .activeWorkspace.id}) | from_entries')
+    echo $ACTIVE_WINDOW
+}
+
+socat -u UNIX-CONNECT:/tmp/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock - | while read -r line; do
+	getWorkspaces
+done

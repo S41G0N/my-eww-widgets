@@ -1,0 +1,135 @@
+/* GLOBAL SETTINGS */
+@import "colors.scss";
+
+*{
+  font-family: 'JetBrains Mono ExtraBold';
+  font-size:14px;
+  background-color:transparent;
+  border:none;
+}
+
+/* OVERALL BAR SETTINGS */
+.main-container {
+  padding:1px 10px 1px 10px;
+  background-color: rgba(7, 9, 15, 0.77);
+  border-radius: 80px;
+}
+
+/* WORKSPACES SETTINGS */
+.workspaces {
+  padding: 5px;
+}
+
+.workspaces button {
+  padding: 2px;
+  border:1px;
+}
+
+.workspaces button:hover {
+  background-color: #e24e63;
+}
+
+.default-workspace {
+  background-color: rgba(7, 9, 15, 1);
+  border-radius:3px;
+}
+
+
+/* SETS COLOR OF WORKSPACE BUTTONS */
+.occupiedWindow {
+  background-color: #990033;
+  color:#ffffff;
+}
+
+.firstScreen{
+	background-color: pink;
+  color: #000000;
+}
+.secondScreen{
+	background-color: #fa8072;
+  color: #000000;
+}
+.thirdScreen{
+	background-color: #dddddd;
+  color: #000000;
+}
+.fourthScreen{
+	background-color: #ffa07a;
+  color: #990033;
+}
+
+/* TRACKERS SETTINGS */
+.trackerIcons{
+  //removes all decoration from the icons
+  all: unset;
+  margin-right: 2px;
+}
+
+.trackerMetric slider {
+  all: unset;
+  color: #ffd5cd;
+}
+
+.trackerMetric scale trough highlight {
+  all: unset;
+  background-color: #990033;
+  color: #000000;
+  border-radius: 10px;
+}
+
+.trackerMetric scale trough {
+  all: unset;
+  background-color: #4e4e4e;
+  border-radius: 50px;
+  min-height: 4px;
+  min-width: 40px;
+}
+
+/* BATTERY WIDGETS COLORS */
+.Not {
+  color: #ffffff;
+}
+
+.Charging {
+  color: #04aa6d;
+}
+
+.Discharging {
+  color: #ffa07a;
+}
+
+.battery button {
+  margin-right:12px;
+}
+
+/*TIME AND CALENDAR SETTINGS*/
+.time_box {
+  margin-top: -20px;
+  margin-bottom: -20px;
+  background-color:transparent;
+}
+
+.time {
+  color: $color15;
+  font-size: 16px;
+}
+.date {
+  color: $color15;
+  font-size: 22px;
+}
+
+.cal {
+  font-size: 18px;
+  background-color: $color0;
+  //background-image: url("images/background.png");
+  color: $color15;
+  border: 5px solid #990033;
+  border-radius: 20 20 20 20;
+  padding: 10px;
+}
+
+.hide {
+  opacity: 0;
+  margin-top: -20px;
+  margin-bottom: -20px;
+}
