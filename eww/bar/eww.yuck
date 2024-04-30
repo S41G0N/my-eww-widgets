@@ -5,6 +5,7 @@
 (deflisten current_workspace :initial "[]" "scripts/get-active-workspace")
 (deflisten volume_vol `bash scripts/audio --get-vol`)
 (deflisten microphone_vol `bash scripts/audio --get-mic`)
+(deflisten brightness `bash scripts/brightness`)
 
 (defpoll time_tmp :interval "20s" `date +" %a %d %b %R"`)
 
@@ -24,16 +25,15 @@
 (defvar year "0")
 
 (defvar eww "eww -c $HOME/.config/eww/bar")
-(defvar hide "")
+(defvar show "true")
 
-(defpoll wifi_status :interval "1s" "scripts/network --status")
-(defvar wifi_strength 1)
+(defpoll wifi_status :interval "1s" "scripts/network")
 
 ;; ################################################ WIDGETS ##########################################
 
-;; BATTERY WIDGET TEMPLATE
+;; WIFI WIDGET
 (defwidget wifi []
-  (box :orientation "h" :class "margin-separate ${hide}" :space-evenly "false"
+  (box :orientation "h" :class "margin-separate" :space-evenly "false" :visible show
     (button :onclick "iwgtk" :timeout "10s" 
       (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))
     (label :text wifi_status)))
@@ -113,8 +113,8 @@
       :value value
       :thickness 3 )))
 
-;; AUDIO & VOLUME
-(defwidget audio []
+;; ADJUSTABLE SETTINGS
+(defwidget adjustables []
   (box :space-evenly false
     (progress_scale
       :label microphone_icon
@@ -125,14 +125,19 @@
       :label volume_icon
       :value volume_vol
       :onchange "scripts/audio --set-vol {}"
-      :action "scripts/audio --toggle-vol")))
+      :action "scripts/audio --toggle-vol")
+    (progress_scale
+      :label "🔆"
+      :value brightness
+      :onchange "scripts/brightness --set-bright {}"
+      )))
 
 ;; TRACKERS WIDGET
 (defwidget trackers []
-  (box :class "circularMetric ${hide}"
+  (box :class "circularMetric" :visible show
      (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
-     (progress_circle :label "💻" :value {round((1 - (EWW_DISK["/"].free / EWW_DISK["/"].total)) * 100,0)})
-     (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill"
+     (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
+     (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
        (progress_circle :label "🔋" :class {EWW_BATTERY.BAT0.status} :value {EWW_BATTERY.BAT0.capacity})
      )
      ))
@@ -140,8 +145,8 @@
 ;; ADJUSTABLE SETTINGS
 (defwidget settings []
   (eventbox
-    :onhover "${eww} update settings_reveal=true && ${eww} update settings_wheel='/ ' && ${eww} update hide='hide'"
-    :onhoverlost "${eww} update settings_reveal=false && ${eww} update settings_wheel='⚙' && ${eww} update hide=''"
+    :onhover "${eww} update settings_reveal=true && ${eww} update settings_wheel='⚙ ' && ${eww} update show='false'"
+    :onhoverlost "${eww} update settings_reveal=false && ${eww} update settings_wheel='⚙' && ${eww} update show='true'"
     (box
       :class "time_box"
       :space-evenly "false"
@@ -149,6 +154,7 @@
       :halign "fill"
       (label :valign "center" 
         :class "fontLarge" 
+        :visible true
         :text "${settings_wheel}"
         )
       (revealer
@@ -156,7 +162,7 @@
         :transition "slideright"
         :duration "450ms"
         :valign "fill"
-        (audio)))))
+        (adjustables)))))
 
 ;; FINAL BAR CONTAINER
 (defwidget full_bar []
@@ -174,7 +180,7 @@
 (defwindow bar
 	:monitor 0
 	:windowtype "dock"
-	:geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width "40%")
+	:geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width "60%")
   ;:reserve (struts :side "top" :distance "70px")
 	:exclusive true
   :stacking "fg"

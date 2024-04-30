@@ -1,0 +1,18 @@
+#!/bin/bash
+
+get_bright() {
+	while true; do
+    brightnessctl | grep '%' | awk -F'[()%]' '{print $2}'
+	sleep 1
+	done
+}
+
+set_bright() {
+  brightnessctl set $1%
+}
+
+if [[ "$1" == "--set-bright" ]]; then
+	set_bright "$2"
+else
+	get_bright
+fi
