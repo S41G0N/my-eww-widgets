@@ -16,7 +16,6 @@
 (defpoll type :interval "1s" "scripts/time_info --type")
 (defpoll date :interval "1s" "scripts/time_info --date")
 
-
 (defvar date_reveal false)
 (defvar settings_wheel "⚙")
 (defvar settings_reveal false)
@@ -30,24 +29,14 @@
 (defpoll wifi_status :interval "1s" "scripts/network --status")
 (defvar wifi_strength 1)
 
-
 ;; ################################################ WIDGETS ##########################################
-
-;; BATTERY WIDGET TEMPLATE
-(defwidget battery [label battery_capacity battery_status]
-  (box :orientation "h" :class "battery"
-    (button :class "trackerIcons" label)
-    (label :class battery_status :text "${battery_capacity}%")))
 
 ;; BATTERY WIDGET TEMPLATE
 (defwidget wifi []
   (box :orientation "h" :class "margin-separate ${hide}" :space-evenly "false"
-    (button :onclick "iwgtk" :timeout "10s"
-    (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18")
-    )
-    (label :text wifi_status)
-    ))
-
+    (button :onclick "iwgtk" :timeout "10s" 
+      (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))
+    (label :text wifi_status)))
 
 ;; WORKSPACE TRACKER
 (defwidget workspaces []
@@ -66,7 +55,6 @@
 ;; TIME WIDGET
 (defwidget time []
   (eventbox
-    ;;:tooltip "Calendar"
     :onhover "${eww} update date_reveal=true"
     :onhoverlost "${eww} update date_reveal=false"
     (button
@@ -89,8 +77,7 @@
           (label
             :valign "fill"
             :class "date"
-            :markup "<span font-weight=\"light\"> -${date}</span>" ))))))
-
+            :markup "<span font-weight=\"light\">${date}</span>" ))))))
 
 ;; POPUP CALENDAR
 (defwidget popup_calendar []
@@ -105,8 +92,7 @@
       :year year
       :show-details "true"
       :show-heading "true"
-      :show-day-names "true"))
-)
+      :show-day-names "true")))
 
 ;; PROGRESS BAR TEMPLATE
 (defwidget progress_scale [label value onchange ?action]
@@ -119,15 +105,13 @@
            :onchange onchange)))
 
 ;; PROGRESS CIRCLE TEMPLATE
-(defwidget progress_circle [label value] 
+(defwidget progress_circle [?label value] 
   (box :orientation "h" :class "circularMetric"
     (label :class "trackerIcons" :text label)
     (circular-progress 
       :start-at 50
       :value value
-      :thickness 3
-      )
-    ))
+      :thickness 3 )))
 
 ;; AUDIO & VOLUME
 (defwidget audio []
@@ -143,12 +127,15 @@
       :onchange "scripts/audio --set-vol {}"
       :action "scripts/audio --toggle-vol")))
 
+;; TRACKERS WIDGET
 (defwidget trackers []
   (box :class "circularMetric ${hide}"
      (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
      (progress_circle :label "💻" :value {round((1 - (EWW_DISK["/"].free / EWW_DISK["/"].total)) * 100,0)})
-    )
-)
+     (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill"
+       (progress_circle :label "🔋" :class {EWW_BATTERY.BAT0.status} :value {EWW_BATTERY.BAT0.capacity})
+     )
+     ))
 
 ;; ADJUSTABLE SETTINGS
 (defwidget settings []
@@ -169,10 +156,9 @@
         :transition "slideright"
         :duration "450ms"
         :valign "fill"
-        (audio)
-        ))))
+        (audio)))))
 
-
+;; FINAL BAR CONTAINER
 (defwidget full_bar []
 	(centerbox :class "main-container" :orientation "h" :halign "true"
     (box :halign "start"  (workspaces))
@@ -182,25 +168,23 @@
       (trackers)
       (settings))))
 
-
 ;; ########################################## WINDOWS #################################################
 
 ;; BAR WINDOW
 (defwindow bar
 	:monitor 0
 	:windowtype "dock"
-	:geometry (geometry :anchor "top center" :y "7px" :hexpand true :halign true :width "40%")
+	:geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width "40%")
   ;:reserve (struts :side "top" :distance "70px")
 	:exclusive true
   :stacking "fg"
   :wm-ignore false
-  
   (full_bar))
 
 ;; CALENDAR WINDOW
 (defwindow calendar
 	:monitor 0
-  :geometry (geometry :x "810" :y "10px" :width "300px" :height "100px")
+  :geometry (geometry :x 810 :y 10 :width 300 :height 100)
   :stacking "fg"
   :windowtype "dock"
   :wm-ignore "false"
