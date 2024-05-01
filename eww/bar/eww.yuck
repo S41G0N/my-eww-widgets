@@ -1,11 +1,11 @@
 ;; ######################################### VARIABLES ##############################################
 
-(deflisten get_layout `bash scripts/show_layout`)
+(deflisten get_layout "scripts/show_layout")
 (deflisten workspaces_list :initial "[]" "scripts/get-workspaces")
 (deflisten current_workspace :initial "[]" "scripts/get-active-workspace")
-(deflisten volume_vol `bash scripts/audio --get-vol`)
-(deflisten microphone_vol `bash scripts/audio --get-mic`)
-(deflisten brightness `bash scripts/brightness`)
+(deflisten volume_vol "scripts/audio --get-vol")
+(deflisten microphone_vol "scripts/audio --get-mic")
+(deflisten brightness "scripts/brightness")
 
 (defpoll time_tmp :interval "20s" `date +" %a %d %b %R"`)
 
@@ -58,7 +58,7 @@
     :onhover "${eww} update date_reveal=true"
     :onhoverlost "${eww} update date_reveal=false"
     (button
-      :onclick "scripts/popup_calendar"
+      :onclick "scripts/popup_windows --calendar"
       (box
         :class "time_box"
         :space-evenly "false"
@@ -94,6 +94,15 @@
       :show-heading "true"
       :show-day-names "true")))
 
+(defwidget popup_power_management []
+  (box
+    :orientation "v"
+    :valign "fill"
+    (button :onclick "system76-power profile battery" (label :text "Battery"))
+    (button :onclick "system76-power profile balanced"(label :text "Balanced"))
+    (button :onclick "system76-power profile performance"(label :text "Performance"))
+    ))
+
 ;; PROGRESS BAR TEMPLATE
 (defwidget progress_scale [label value onchange ?action]
   (box :orientation "h" :class "trackerMetric" :space-evenly false
@@ -105,8 +114,8 @@
            :onchange onchange)))
 
 ;; PROGRESS CIRCLE TEMPLATE
-(defwidget progress_circle [?label value] 
-  (box :orientation "h" :class "circularMetric"
+(defwidget progress_circle [?tooltip ?label value] 
+  (box :orientation "h" :class "circularMetric" :tooltip tooltip
     (label :class "trackerIcons" :text label)
     (circular-progress 
       :start-at 50
@@ -138,9 +147,9 @@
      (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
      (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
      (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
-       (progress_circle :label "🔋" :class {EWW_BATTERY.BAT0.status} :value {EWW_BATTERY.BAT0.capacity})
-     )
-     ))
+     (button :onclick "scripts/popup_windows --power-manager"
+       (progress_circle :label "🔋" :class {EWW_BATTERY.BAT0.status} :value {EWW_BATTERY.BAT0.capacity} :tooltip "${EWW_BATTERY.BAT0.capacity}%"))
+     )))
 
 ;; ADJUSTABLE SETTINGS
 (defwidget settings []
@@ -195,3 +204,12 @@
   :windowtype "dock"
   :wm-ignore "false"
   (popup_calendar))
+
+;; POWER MANAGEMENT WINDOW
+(defwindow powerManager
+	:monitor 0
+  :geometry (geometry :x 810 :y 10 :width 300 :height 100)
+  :stacking "fg"
+  :windowtype "normal"
+  :wm-ignore "false"
+  (popup_power_management))
