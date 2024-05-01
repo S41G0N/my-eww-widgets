@@ -60,25 +60,29 @@
 }
 
 /* TRACKERS SETTINGS */
-.trackerIcons{
-  //removes all decoration from the icons
+.trackerIcons,
+.trackerMetric slider,
+.trackerMetric scale trough highlight,
+.trackerMetric scale trough,
+.circularMetric,
+.circularMetric button,
+.circularMetric label,
+.circularMetric circular-progress,
+.margin-separate button {
   all: unset;
 }
 
 .trackerMetric slider {
-  all: unset;
   color: #ffd5cd;
 }
 
 .trackerMetric scale trough highlight {
-  all: unset;
   background-color: #990033;
   color: #000000;
   border-radius: 10px;
 }
 
 .trackerMetric scale trough {
-  all: unset;
   background-color: #4e4e4e;
   border-radius: 50px;
   min-height: 4px;
@@ -86,12 +90,7 @@
 }
 
 .circularMetric{ 
-  all: unset;
   margin-right:5px;
-}
-
-.circularMetric button{ 
-  all: unset;
 }
 
 .circularMetric label{ 
@@ -106,20 +105,16 @@
 }
 
 /* BATTERY WIDGETS COLORS */
-.Not {
+.Not circular-progress{
   color: #ffffff;
 }
 
-.Charging {
-  color: #04aa6d;
+.Charging circular-progress{
+  color: #8ccb88;
 }
 
-.Discharging {
-  color: #ffa07a;
-}
-
-.battery button {
-  margin-right:12px;
+.Discharging circular-progress{
+  color: #b5475b;
 }
 
 /*TIME AND CALENDAR SETTINGS*/
@@ -161,8 +156,4 @@
 .margin-separate label{
     margin-right: 15px;
     margin-left: 5px;
-}
-
-.margin-separate button{
-    all:unset;
 }

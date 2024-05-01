@@ -114,8 +114,8 @@
            :onchange onchange)))
 
 ;; PROGRESS CIRCLE TEMPLATE
-(defwidget progress_circle [?tooltip ?label value] 
-  (box :orientation "h" :class "circularMetric" :tooltip tooltip
+(defwidget progress_circle [?tooltip ?label ?class_inherit value] 
+  (box :orientation "h" :class "circularMetric ${class_inherit}" :tooltip tooltip
     (label :class "trackerIcons" :text label)
     (circular-progress 
       :start-at 50
@@ -148,7 +148,7 @@
      (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
      (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
      (button :onclick "scripts/popup_windows --power-manager"
-       (progress_circle :label "🔋" :class {EWW_BATTERY.BAT0.status} :value {EWW_BATTERY.BAT0.capacity} :tooltip "${EWW_BATTERY.BAT0.capacity}%"))
+       (progress_circle :label "🔋" :class_inherit {EWW_BATTERY.BAT0.status} :value {EWW_BATTERY.BAT0.capacity} :tooltip "${EWW_BATTERY.BAT0.capacity}%"))
      )))
 
 ;; ADJUSTABLE SETTINGS
