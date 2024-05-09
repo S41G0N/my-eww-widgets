@@ -82,7 +82,7 @@
 ;; POPUP CALENDAR
 (defwidget popup_calendar []
   (box
-    :class "calendar"
+    :class "popup-window"
     :orientation "h"
     :valign "fill"
     :halign "fill"
@@ -95,9 +95,8 @@
       :show-day-names "true")))
 
 (defwidget popup_power_management []
-  (box
+  (box :class "popup-window"
     :orientation "v"
-    :valign "fill"
     (button :onclick "system76-power profile battery" (label :text "Battery"))
     (button :onclick "system76-power profile balanced"(label :text "Balanced"))
     (button :onclick "system76-power profile performance"(label :text "Performance"))
@@ -199,7 +198,8 @@
 ;; CALENDAR WINDOW
 (defwindow calendar
 	:monitor 0
-  :geometry (geometry :x 810 :y 10 :width 300 :height 100)
+    ;NEEDS TO BE SET DYNAMIC
+  :geometry (geometry :x 490 :y 10 :width 300 :height 100)
   :stacking "fg"
   :windowtype "dock"
   :wm-ignore "false"
@@ -208,7 +208,7 @@
 ;; POWER MANAGEMENT WINDOW
 (defwindow powerManager
 	:monitor 0
-  :geometry (geometry :x 810 :y 10 :width 300 :height 100)
+  :geometry (geometry :x 910 :y 10 :width 140 :height 100)
   :stacking "fg"
   :windowtype "normal"
   :wm-ignore "false"
