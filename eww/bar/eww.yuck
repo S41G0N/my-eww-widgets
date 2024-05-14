@@ -36,8 +36,9 @@
   (box :orientation "h" :class "margin-separate" :space-evenly "false" :visible show
     (button :onclick "iwgtk" :timeout "10s" 
       (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))
-    (label :text wifi_status)))
+    (label :markup "<span font-size=\"small\" font-weight=\"light\">${wifi_status}</span>")))
 
+          
 ;; WORKSPACE TRACKER
 (defwidget workspaces []
   (box :class "workspaces" 
@@ -77,7 +78,7 @@
           (label
             :valign "fill"
             :class "date"
-            :markup "<span font-weight=\"light\">${date}</span>" ))))))
+            :markup "<span font-weight=\"light\" font-size=\"small\">${date}</span>" ))))))
 
 ;; POPUP CALENDAR
 (defwidget popup_calendar []
