@@ -1,0 +1,26 @@
+#!/bin/bash
+
+get_layout() {
+    #Lists the inputs in JSON, Extract layout of keyboard 1, Remove double quotes
+    while true; do
+        hyprctl -j devices | jq '.keyboards?[1].layout' | sed 's/"//g' 
+    sleep 1
+    done
+}
+
+switch_layout() {
+    if [[ $(hyprctl -j getoption input:kb_layout | jq -r '.str') = "us" ]]; then
+        hyprctl keyword input:kb_layout cz
+
+    else
+        hyprctl keyword input:kb_layout us
+    fi
+}
+
+if [ "$1" == "--get-layout" ]; then
+    get_layout
+
+elif [ "$1" == "--switch-layout" ]; then
+    switch_layout
+
+fi

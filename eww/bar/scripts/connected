@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Check if connected via WiFi
+if ip a | grep -q 'wla'; then
+    echo "Connected via WiFi"
+# Check if connected via Ethernet
+elif ip a | grep -q 'enp'; then
+    echo "Connected via Ethernet"
+else
+    echo "Not connected"
+fi
+

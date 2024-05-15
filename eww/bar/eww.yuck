@@ -1,6 +1,5 @@
 ;; ######################################### VARIABLES ##############################################
-
-(deflisten get_layout "scripts/show_layout")
+(deflisten get_layout "scripts/layout --get-layout")
 (deflisten workspaces_list :initial "[]" "scripts/get-workspaces")
 (deflisten current_workspace :initial "[]" "scripts/get-active-workspace")
 (deflisten volume_vol "scripts/audio --get-vol")
@@ -29,8 +28,9 @@
 
 (defpoll wifi_status :interval "1s" "scripts/network")
 
-;; ################################################ WIDGETS ##########################################
 
+
+;; ################################################ WIDGETS ##########################################
 ;; WIFI WIDGET
 (defwidget wifi []
   (box :orientation "h" :class "margin-separate" :space-evenly "false" :visible show
@@ -69,7 +69,7 @@
         (label 
           :valign "center"
           :class "time"
-          :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>" )
+          :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>")
         (revealer
           :reveal date_reveal
           :transition "slideright"
@@ -78,7 +78,7 @@
           (label
             :valign "fill"
             :class "date"
-            :markup "<span font-weight=\"light\" font-size=\"small\">${date}</span>" ))))))
+            :markup "<span font-weight=\"light\" font-size=\"small\">${date}</span>"))))))
 
 ;; POPUP CALENDAR
 (defwidget popup_calendar []
@@ -100,8 +100,7 @@
     :orientation "v"
     (button :onclick "system76-power profile battery" (label :text "Battery"))
     (button :onclick "system76-power profile balanced"(label :text "Balanced"))
-    (button :onclick "system76-power profile performance"(label :text "Performance"))
-    ))
+    (button :onclick "system76-power profile performance"(label :text "Performance"))))
 
 ;; PROGRESS BAR TEMPLATE
 (defwidget progress_scale [label value onchange ?action]
@@ -120,7 +119,7 @@
     (circular-progress 
       :start-at 50
       :value value
-      :thickness 3 )))
+      :thickness 3)))
 
 ;; ADJUSTABLE SETTINGS
 (defwidget adjustables []
@@ -139,17 +138,19 @@
       :label "🔆"
       :value brightness
       :onchange "scripts/brightness --set-bright {}"
-      )))
+      :action "asusctl -n")
+      (button :onclick "scripts/layout --switch-layout" :timeout "10s" 
+        (label :text "⌨"))
+      (label :markup "<span font-size=\"small\" font-weight=\"light\">${get_layout}</span>")))
 
 ;; TRACKERS WIDGET
 (defwidget trackers []
   (box :class "circularMetric" :visible show
-     (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
-     (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
-     (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
-     (button :onclick "scripts/popup_windows --power-manager"
-       (progress_circle :label "🔋" :class_inherit {EWW_BATTERY.BAT0.status} :value {EWW_BATTERY.BAT0.capacity} :tooltip "${EWW_BATTERY.BAT0.capacity}%"))
-     )))
+    (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
+    (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
+    (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
+    (button :onclick "scripts/popup_windows --power-manager"
+      (progress_circle :label "🔋" :class_inherit {EWW_BATTERY.BAT0.status} :value {EWW_BATTERY.BAT0.capacity} :tooltip "${EWW_BATTERY.BAT0.capacity}%")))))
 
 ;; ADJUSTABLE SETTINGS
 (defwidget settings []
@@ -164,8 +165,7 @@
       (label :valign "center" 
         :class "fontLarge" 
         :visible true
-        :text "${settings_wheel}"
-        )
+        :text "${settings_wheel}")
       (revealer
         :reveal settings_reveal
         :transition "slideright"
@@ -175,31 +175,32 @@
 
 ;; FINAL BAR CONTAINER
 (defwidget full_bar []
-	(centerbox :class "main-container" :orientation "h" :halign "true"
-    (box :halign "start"  (workspaces))
-		(box :halign "center" (time))
-		(box :halign "end" :space-evenly false
-      (wifi)
-      (trackers)
-      (settings))))
+  (centerbox :class "main-container" :orientation "h" :halign "true"
+  (box :halign "start"  (workspaces))
+    (box :halign "center" (time))
+    (box :halign "end" :space-evenly false
+    (wifi)
+    (trackers)
+    (settings))))
+
+
 
 ;; ########################################## WINDOWS #################################################
-
 ;; BAR WINDOW
 (defwindow bar
-	:monitor 0
-	:windowtype "dock"
-	:geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width "60%")
+  :monitor 0
+  :windowtype "dock"
+  :geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width "60%")
+  :exclusive true
   ;:reserve (struts :side "top" :distance "70px")
-	:exclusive true
   :stacking "fg"
   :wm-ignore false
   (full_bar))
 
 ;; CALENDAR WINDOW
 (defwindow calendar
-	:monitor 0
-    ;NEEDS TO BE SET DYNAMIC
+  :monitor 0
+  ;NEEDS TO BE SET DYNAMIC
   :geometry (geometry :x 490 :y 10 :width 300 :height 100)
   :stacking "fg"
   :windowtype "dock"
@@ -208,7 +209,7 @@
 
 ;; POWER MANAGEMENT WINDOW
 (defwindow powerManager
-	:monitor 0
+  :monitor 0
   :geometry (geometry :x 910 :y 10 :width 140 :height 100)
   :stacking "fg"
   :windowtype "normal"
