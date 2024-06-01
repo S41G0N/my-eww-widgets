@@ -89,16 +89,16 @@
   min-width: 40px;
 }
 
-.circularMetric{ 
+.circularMetric{
   margin-right:5px;
 }
 
-.circularMetric label{ 
+.circularMetric label{
   margin-right: 3px;
   font-size: 13px;
 }
 
-.circularMetric circular-progress{ 
+.circularMetric circular-progress{
   color: #990033;
   background-color: #4e4e4e;
   margin: 1px;
@@ -115,6 +115,10 @@
 
 .Discharging circular-progress{
   color: #b5475b;
+}
+
+.powerSaving circular-progress{
+  color: #B5A642;
 }
 
 /*TIME AND CALENDAR SETTINGS*/
