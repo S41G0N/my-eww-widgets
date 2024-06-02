@@ -7,6 +7,7 @@
 (deflisten brightness "scripts/brightness")
 
 (defpoll time_tmp :interval "20s" `date +" %a %d %b %R"`)
+(defpoll power_mode :interval "1s" `system76-power profile | grep 'Power Profile' | awk -F': ' '{print $2}' | xargs`)
 
 (defpoll volume_icon :interval "2s" "scripts/audio --get-volicon")
 (defpoll microphone_icon :interval "2s" "scripts/audio --get-micicon")
@@ -28,28 +29,26 @@
 
 (defpoll wifi_status :interval "1s" "scripts/network")
 
-
-
 ;; ################################################ WIDGETS ##########################################
 ;; WIFI WIDGET
 (defwidget wifi []
   (box :orientation "h" :class "margin-separate" :space-evenly "false" :visible show
-    (button :onclick "iwgtk" :timeout "10s" 
+    (button :onclick "iwgtk" :timeout "25s"
       (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))
     (label :markup "<span font-size=\"small\" font-weight=\"light\">${wifi_status}</span>")))
 
-          
+
 ;; WORKSPACE TRACKER
 (defwidget workspaces []
-  (box :class "workspaces" 
+  (box :class "workspaces"
     (label :text "${workspaces_list} ${current_workspace}" :visible false)
     (for workspace in workspaces_list
-      (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
-        (box :class "default-workspace 
-           ${workspace.id == current_workspace[0] ? "firstScreen" : ""} 
-           ${workspace.id == current_workspace[1] ? "secondScreen" : ""} 
-           ${workspace.id == current_workspace[2] ? "thirdScreen" : ""} 
-           ${workspace.id == current_workspace[3] ? "fourthScreen" : ""} 
+      (button :onclick "hyprctl dispatch workspace ${workspace.id}"
+        (box :class "default-workspace
+           ${workspace.id == current_workspace[0] ? "firstScreen" : ""}
+           ${workspace.id == current_workspace[1] ? "secondScreen" : ""}
+           ${workspace.id == current_workspace[2] ? "thirdScreen" : ""}
+           ${workspace.id == current_workspace[3] ? "fourthScreen" : ""}
            ${workspace.windows > 0 ? "occupiedWindow" : ""}"
            (label :text "${workspace.id}"))))))
 
@@ -66,7 +65,7 @@
         :orientation "h"
         :valign "center"
         :halign "fill"
-        (label 
+        (label
           :valign "center"
           :class "time"
           :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>")
@@ -113,10 +112,10 @@
            :onchange onchange)))
 
 ;; PROGRESS CIRCLE TEMPLATE
-(defwidget progress_circle [?tooltip ?label ?class_inherit value] 
+(defwidget progress_circle [?tooltip ?label ?class_inherit value]
   (box :orientation "h" :class "circularMetric ${class_inherit}" :tooltip tooltip
     (label :class "trackerIcons" :text label)
-    (circular-progress 
+    (circular-progress
       :start-at 50
       :value value
       :thickness 3)))
@@ -139,7 +138,7 @@
       :value brightness
       :onchange "scripts/brightness --set-bright {}"
       :action "asusctl -n")
-      (button :onclick "scripts/layout --switch-layout" :timeout "10s" 
+      (button :onclick "scripts/layout --switch-layout" :timeout "10s"
         (label :text "⌨"))
       (label :markup "<span font-size=\"small\" font-weight=\"light\">${get_layout}</span>")))
 
@@ -150,7 +149,7 @@
     (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
     (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
     (button :onclick "scripts/popup_windows --power-manager"
-      (progress_circle :label "🔋" :class_inherit {EWW_BATTERY.BAT0.status} :value {EWW_BATTERY.BAT0.capacity} :tooltip "${EWW_BATTERY.BAT0.capacity}%")))))
+      (progress_circle :label "🔋" :class_inherit "${power_mode} ${EWW_BATTERY.BAT0.status}" :value {EWW_BATTERY.BAT0.capacity} :tooltip "${EWW_BATTERY.BAT0.capacity}%")))))
 
 ;; ADJUSTABLE SETTINGS
 (defwidget settings []
@@ -162,8 +161,8 @@
       :space-evenly "false"
       :orientation "h"
       :halign "fill"
-      (label :valign "center" 
-        :class "fontLarge" 
+      (label :valign "center"
+        :class "fontLarge"
         :visible true
         :text "${settings_wheel}")
       (revealer

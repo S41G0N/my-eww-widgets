@@ -113,12 +113,16 @@
   color: #8ccb88;
 }
 
-.Discharging circular-progress{
-  color: #b5475b;
+.Battery circular-progress{
+  color: #daa520;
 }
 
-.powerSaving circular-progress{
-  color: #B5A642;
+.Balanced circular-progress{
+  color: #4682b4;
+}
+
+.Performance circular-progress{
+  color: #ff4500;
 }
 
 /*TIME AND CALENDAR SETTINGS*/
