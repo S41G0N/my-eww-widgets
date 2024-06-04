@@ -1,176 +1,215 @@
-/* GLOBAL SETTINGS */
-@import "colors.scss";
+;; ######################################### VARIABLES ##############################################
+(deflisten get_layout "scripts/layout --get-layout")
+(deflisten workspaces_list :initial "[]" "scripts/get-workspaces")
+(deflisten current_workspace :initial "[]" "scripts/get-active-workspace")
+(deflisten volume_vol "scripts/audio --get-vol")
+(deflisten microphone_vol "scripts/audio --get-mic")
+(deflisten brightness "scripts/brightness")
 
-*{
-  font-family: 'JetBrains Mono ExtraBold';
-  font-size:14px;
-  background-color:transparent;
-  border:none;
-}
+(defpoll time_tmp :interval "20s" `date +" %a %d %b %R"`)
+(defpoll power_mode :interval "1s" `system76-power profile | grep 'Power Profile' | awk -F': ' '{print $2}' | xargs`)
 
-/* OVERALL BAR SETTINGS */
-.main-container {
-  padding:1px 10px 1px 10px;
-  background-color: rgba(7, 9, 15, 0.77);
-  border-radius: 80px;
-  margin-bottom:7px;
-}
+(defpoll volume_icon :interval "2s" "scripts/audio --get-volicon")
+(defpoll microphone_icon :interval "2s" "scripts/audio --get-micicon")
 
-/* WORKSPACES SETTINGS */
-.workspaces {
-  padding: 5px;
-}
+(defpoll hour :interval "1s" "scripts/time_info --hour")
+(defpoll minutes :interval "1s" "scripts/time_info --minutes")
+(defpoll type :interval "1s" "scripts/time_info --type")
+(defpoll date :interval "1s" "scripts/time_info --date")
 
-.workspaces button {
-  padding: 2px;
-  border:1px;
-}
+(defvar date_reveal false)
+(defvar settings_wheel "⚙")
+(defvar settings_reveal false)
+(defvar day "0")
+(defvar month "0")
+(defvar year "0")
 
-.workspaces button:hover {
-  background-color: #e24e63;
-}
+(defvar toggle_window "scripts/popup_windows")
+(defvar power_profile "system76-power profile")
+(defvar eww "eww -c $HOME/.config/eww/bar")
+(defvar show "true")
 
-.default-workspace {
-  background-color: rgba(7, 9, 15, 1);
-  border-radius:3px;
-}
+(defpoll wifi_status :interval "1s" "scripts/network")
 
+;; ################################################ WIDGETS ##########################################
+;; WIFI WIDGET
+(defwidget wifi []
+    (box :orientation "h" :class "margin-separate" :space-evenly "false" :visible show
+        (button :onclick "iwgtk" :timeout "25s"
+            (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))
+            (label :markup "<span font-size=\"small\" font-weight=\"light\">${wifi_status}</span>")))
 
-/* SETS COLOR OF WORKSPACE BUTTONS */
-.occupiedWindow {
-  background-color: #990033;
-  color:#ffffff;
-}
+;; WORKSPACE TRACKER
+(defwidget workspaces []
+  (box :class "workspaces" 
+    (label :text "${workspaces_list} ${current_workspace}" :visible false)
+    (for workspace in workspaces_list
+      (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
+        (box :class "default-workspace 
+           ${workspace.id == current_workspace[0] ? "firstScreen" : ""} 
+           ${workspace.id == current_workspace[1] ? "secondScreen" : ""} 
+           ${workspace.id == current_workspace[2] ? "thirdScreen" : ""} 
+           ${workspace.id == current_workspace[3] ? "fourthScreen" : ""} 
+           ${workspace.windows > 0 ? "occupiedWindow" : ""}"
+           (label :text "${workspace.id}"))))))
 
-.firstScreen{
-	background-color: pink;
-  color: #000000;
-}
-.secondScreen{
-	background-color: #fa8072;
-  color: #000000;
-}
-.thirdScreen{
-	background-color: #dddddd;
-  color: #000000;
-}
-.fourthScreen{
-	background-color: #ffa07a;
-  color: #990033;
-}
+;; TIME WIDGET
+(defwidget time []
+  (eventbox
+    :onhover "${eww} update date_reveal=true"
+    :onhoverlost "${eww} update date_reveal=false"
+    (button
+      :onclick "${toggle_window} --calendar"
+      (box
+        :class "time_box"
+        :space-evenly "false"
+        :orientation "h"
+        :valign "center"
+        :halign "fill"
+        (label
+          :valign "center"
+          :class "time"
+          :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>")
+        (revealer
+          :reveal date_reveal
+          :transition "slideright"
+          :duration "350ms"
+          :valign "fill"
+          (label
+            :valign "fill"
+            :class "date"
+            :markup "<span font-weight=\"light\" font-size=\"small\">${date}</span>"))))))
 
-/* TRACKERS SETTINGS */
-.trackerIcons,
-.trackerMetric slider,
-.trackerMetric scale trough highlight,
-.trackerMetric scale trough,
-.circularMetric,
-.circularMetric button,
-.circularMetric label,
-.circularMetric circular-progress,
-.margin-separate button {
-  all: unset;
-}
+;; POPUP CALENDAR
+(defwidget popup_calendar []
+  (box
+    :class "popup-window"
+    :orientation "h"
+    :valign "fill"
+    :halign "fill"
+    (calendar
+      :day day
+      :month month
+      :year year
+      :show-details "true"
+      :show-heading "true"
+      :show-day-names "true")))
 
-.trackerMetric slider {
-  color: #ffd5cd;
-}
+(defwidget popup_power_management []
+  (box :class "popup-window"
+    :orientation "v"
+    (button :onclick "${power_profile} battery && ${toggle_window} --power-manager" (label :text "Battery"))
+    (button :onclick "${power_profile} balanced & ${toggle_window} --power-manager"(label :text "Balanced"))
+    (button :onclick "${power_profile} performance && ${toggle_window} --power-manager"(label :text "Performance"))))
 
-.trackerMetric scale trough highlight {
-  background-color: #990033;
-  color: #000000;
-  border-radius: 10px;
-}
+;; PROGRESS BAR TEMPLATE
+(defwidget progress_scale [label value onchange ?action]
+  (box :orientation "h" :class "trackerMetric" :space-evenly false
+    (button :class "trackerIcons" :onclick action label)
+    (scale :min 0
+           :max 101
+           :active {onchange != ""}
+           :value value
+           :onchange onchange)))
 
-.trackerMetric scale trough {
-  background-color: #4e4e4e;
-  border-radius: 50px;
-  min-height: 4px;
-  min-width: 40px;
-}
+;; PROGRESS CIRCLE TEMPLATE
+(defwidget progress_circle [?tooltip ?label ?class_inherit value]
+  (box :orientation "h" :class "circularMetric ${class_inherit}" :tooltip tooltip
+    (label :class "trackerIcons" :text label)
+    (circular-progress
+      :start-at 50
+      :value value
+      :thickness 3)))
 
-.circularMetric{
-  margin-right:5px;
-}
+;; ADJUSTABLE SETTINGS
+(defwidget adjustables []
+  (box :space-evenly false
+    (progress_scale
+      :label microphone_icon
+      :value microphone_vol
+      :onchange "scripts/audio --set-mic {}"
+      :action "scripts/audio --toggle-mic")
+    (progress_scale
+      :label volume_icon
+      :value volume_vol
+      :onchange "scripts/audio --set-vol {}"
+      :action "scripts/audio --toggle-vol")
+    (progress_scale
+      :label "🔆"
+      :value brightness
+      :onchange "scripts/brightness --set-bright {}"
+      :action "asusctl -n")
+      (button :onclick "scripts/layout --switch-layout" :timeout "10s"
+        (label :text "⌨"))
+      (label :markup "<span font-size=\"small\" font-weight=\"light\">${get_layout}</span>")))
 
-.circularMetric label{
-  margin-right: 3px;
-  font-size: 13px;
-}
+;; TRACKERS WIDGET
+(defwidget trackers []
+  (box :class "circularMetric" :visible show
+    (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
+    (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
+    (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
+    (button :onclick "scripts/popup_windows --power-manager"
+      (progress_circle :label "🔋" :class_inherit "${power_mode} ${EWW_BATTERY.BAT0.status}" :value {EWW_BATTERY.BAT0.capacity} :tooltip "${EWW_BATTERY.BAT0.capacity}%")))))
 
-.circularMetric circular-progress{
-  color: #990033;
-  background-color: #4e4e4e;
-  margin: 1px;
-}
+;; ADJUSTABLE SETTINGS
+(defwidget settings []
+  (eventbox
+    :onhover "${eww} update settings_reveal=true && ${eww} update settings_wheel='⚙ ' && ${eww} update show='false'"
+    :onhoverlost "${eww} update settings_reveal=false && ${eww} update settings_wheel='⚙' && ${eww} update show='true'"
+    (box
+      :class "time_box"
+      :space-evenly "false"
+      :orientation "h"
+      :halign "fill"
+      (label :valign "center"
+        :class "fontLarge"
+        :visible true
+        :text "${settings_wheel}")
+      (revealer
+        :reveal settings_reveal
+        :transition "slideright"
+        :duration "450ms"
+        :valign "fill"
+        (adjustables)))))
 
-/* BATTERY WIDGETS COLORS */
-.Not circular-progress{
-  color: #ffffff;
-}
+;; FINAL BAR CONTAINER
+(defwidget full_bar []
+  (centerbox :class "main-container" :orientation "h" :halign "true"
+  (box :halign "start"  (workspaces))
+    (box :halign "center" (time))
+    (box :halign "end" :space-evenly false
+    (wifi)
+    (trackers)
+    (settings))))
 
-.Charging circular-progress{
-  color: #8ccb88;
-}
+;; ########################################## WINDOWS #################################################
+;; BAR WINDOW
+(defwindow bar
+  :monitor 0
+  :windowtype "dock"
+  :geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width "60%")
+  :exclusive true
+  ;:reserve (struts :side "top" :distance "70px")
+  :stacking "fg"
+  :wm-ignore false
+  (full_bar))
 
-.Battery circular-progress{
-  color: #daa520;
-}
+;; CALENDAR WINDOW
+(defwindow calendar
+  :monitor 0
+  ;NEEDS TO BE SET DYNAMIC
+  :geometry (geometry :x 490 :y 10 :width 300 :height 100)
+  :stacking "fg"
+  :windowtype "dock"
+  :wm-ignore "false"
+  (popup_calendar))
 
-.Balanced circular-progress{
-  color: #4682b4;
-}
-
-.Performance circular-progress{
-  color: #ff4500;
-}
-
-/*TIME AND CALENDAR SETTINGS*/
-.time_box {
-  margin-top: -20px;
-  margin-bottom: -20px;
-  background-color:transparent;
-}
-
-.time {
-  color: $color15;
-  font-size: 16px;
-}
-.date {
-  color: $color15;
-  font-size: 16px;
-}
-
-.popup-window {
-  font-size: 18px;
-  background-color: $color0;
-  //background-image: url("images/background.png");
-  color: $color15;
-  border: 5px solid #990033;
-  border-radius: 20 20 20 20;
-  padding: 10px;
-}
-
-.hide {
-  opacity: 0;
-  margin-top: -20px;
-  margin-bottom: -20px;
-}
-
-.fontLarge {
-  font-size:20px;
-}
-
-.margin-separate label{
-    margin-right: 15px;
-    margin-left: 5px;
-}
-
-.power_settings {
-  font-size: 18px;
-  background-color: $color0;
-  color: $color15;
-  border: 5px solid #990033;
-  border-radius: 20 20 20 20;
-  padding: 10px;
-}
+;; POWER MANAGEMENT WINDOW
+(defwindow powerManager
+  :monitor 0
+  :geometry (geometry :x 910 :y 10 :width 140 :height 100)
+  :stacking "fg"
+  :windowtype "normal"
+  :wm-ignore "false"
+  (popup_power_management))
