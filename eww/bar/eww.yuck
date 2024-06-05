@@ -12,6 +12,8 @@
 (defpoll volume_icon :interval "2s" "scripts/audio --get-volicon")
 (defpoll microphone_icon :interval "2s" "scripts/audio --get-micicon")
 
+(defpoll charge_limit :interval "1s" "cat /sys/class/power_supply/BAT0/charge_control_end_threshold")
+
 (defpoll hour :interval "1s" "scripts/time_info --hour")
 (defpoll minutes :interval "1s" "scripts/time_info --minutes")
 (defpoll type :interval "1s" "scripts/time_info --type")
@@ -100,13 +102,19 @@
     :orientation "v"
     (button :onclick "${power_profile} battery && ${toggle_window} --power-manager" (label :text "Battery"))
     (button :onclick "${power_profile} balanced & ${toggle_window} --power-manager"(label :text "Balanced"))
-    (button :onclick "${power_profile} performance && ${toggle_window} --power-manager"(label :text "Performance"))))
+    (button :onclick "${power_profile} performance && ${toggle_window} --power-manager"(label :text "Performance"))
+    (progress_scale
+      :label "Charge Limit: "
+      :value charge_limit
+      :onchange "asusctl -c {}"
+      :min 20
+    )))
 
 ;; PROGRESS BAR TEMPLATE
-(defwidget progress_scale [label value onchange ?action]
+(defwidget progress_scale [label value onchange ?action ?min]
   (box :orientation "h" :class "trackerMetric" :space-evenly false
     (button :class "trackerIcons" :onclick action label)
-    (scale :min 0
+    (scale :min {0 + min}
            :max 101
            :active {onchange != ""}
            :value value
