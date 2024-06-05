@@ -11,7 +11,7 @@
 /* OVERALL BAR SETTINGS */
 .main-container {
   padding:1px 10px 1px 10px;
-  background-color: rgba(7, 9, 15, 0.77);
+  background-color: $main-container-blue;
   border-radius: 80px;
   margin-bottom:7px;
 }
@@ -27,36 +27,36 @@
 }
 
 .workspaces button:hover {
-  background-color: #e24e63;
+  background-color: $dark-salmon;
 }
 
 .default-workspace {
-  background-color: rgba(7, 9, 15, 1);
+  background-color: $workspace-background-blue;
   border-radius:3px;
 }
 
 
 /* SETS COLOR OF WORKSPACE BUTTONS */
 .occupiedWindow {
-  background-color: #990033;
-  color:#ffffff;
+  background-color: $cherry-red;
+  color: $off-white;
 }
 
 .firstScreen{
-	background-color: pink;
-  color: #000000;
+  background-color: pink;
+  color: $black;
 }
 .secondScreen{
-	background-color: #fa8072;
-  color: #000000;
+  background-color: #fa8072;
+  color: $black;
 }
 .thirdScreen{
-	background-color: #dddddd;
-  color: #000000;
+  background-color: #dddddd;
+  color: $black;
 }
 .fourthScreen{
-	background-color: #ffa07a;
-  color: #990033;
+  background-color: #ffa07a;
+  color: $cherry-red;
 }
 
 /* TRACKERS SETTINGS */
@@ -72,18 +72,14 @@
   all: unset;
 }
 
-.trackerMetric slider {
-  color: #ffd5cd;
-}
-
 .trackerMetric scale trough highlight {
-  background-color: #990033;
-  color: #000000;
+  background-color: $cherry-red;
+  color: black;
   border-radius: 10px;
 }
 
 .trackerMetric scale trough {
-  background-color: #4e4e4e;
+  background-color: $dark-gray;
   border-radius: 50px;
   min-height: 4px;
   min-width: 40px;
@@ -99,30 +95,31 @@
 }
 
 .circularMetric circular-progress{
-  color: #990033;
-  background-color: #4e4e4e;
+  color: $cherry-red;
+  background-color: $dark-gray;
   margin: 1px;
 }
 
 /* BATTERY WIDGETS COLORS */
-.Not circular-progress{
-  color: #ffffff;
-}
-
-.Charging circular-progress{
-  color: #8ccb88;
-}
 
 .Battery circular-progress{
-  color: #daa520;
+  color: $pastel-yellow;
 }
 
 .Balanced circular-progress{
-  color: #4682b4;
+  color: $cyan;
 }
 
 .Performance circular-progress{
-  color: #ff4500;
+  color: $light-pink;
+}
+
+.Not circular-progress{
+  color: $off-white;
+}
+
+.Charging circular-progress{
+  color: $light-green;
 }
 
 /*TIME AND CALENDAR SETTINGS*/
@@ -133,20 +130,19 @@
 }
 
 .time {
-  color: $color15;
+  color: $off-white;
   font-size: 16px;
 }
 .date {
-  color: $color15;
+  color: $off-white;
   font-size: 16px;
 }
 
 .popup-window {
   font-size: 18px;
-  background-color: $color0;
-  //background-image: url("images/background.png");
-  color: $color15;
-  border: 5px solid #990033;
+  background-color: $dark-blue-gray;
+  color: $off-white;
+  border: 5px solid $cherry-red;
   border-radius: 20 20 20 20;
   padding: 10px;
 }
@@ -168,9 +164,9 @@
 
 .power_settings {
   font-size: 18px;
-  background-color: $color0;
-  color: $color15;
-  border: 5px solid #990033;
+  background-color: $dark-blue-gray;
+  color: $off-white;
+  border: 5px solid $cherry-red;
   border-radius: 20 20 20 20;
   padding: 10px;
 }
