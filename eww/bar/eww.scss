@@ -1,6 +1,11 @@
 /* GLOBAL SETTINGS */
 @import "colors.scss";
 
+@mixin transition-color($color, $duration, $timing) {
+  color: $color;
+  transition: color $duration $timing;
+}
+
 *{
   font-family: 'JetBrains Mono ExtraBold';
   font-size:14px;
@@ -103,23 +108,23 @@
 /* BATTERY WIDGETS COLORS */
 
 .Battery circular-progress{
-  color: $pastel-yellow;
+  @include transition-color($pastel-yellow, 0.7s, ease-in-out);
 }
 
 .Balanced circular-progress{
-  color: $cyan;
+  @include transition-color($cyan, 0.7s, ease-in-out);
 }
 
 .Performance circular-progress{
-  color: $light-pink;
+  @include transition-color($light-pink, 0.7s, ease-in-out);
 }
 
 .Not circular-progress{
-  color: $off-white;
+  @include transition-color($off-white, 0.7s, ease-in-out);
 }
 
 .Charging circular-progress{
-  color: $light-green;
+  @include transition-color($light-green, 0.7s, ease-in-out);
 }
 
 /*TIME AND CALENDAR SETTINGS*/
@@ -143,7 +148,7 @@
   background-color: $dark-blue-gray;
   color: $off-white;
   border: 5px solid $cherry-red;
-  border-radius: 20 20 20 20;
+  border-radius: 20px;
   padding: 10px;
 }
 
@@ -167,6 +172,6 @@
   background-color: $dark-blue-gray;
   color: $off-white;
   border: 5px solid $cherry-red;
-  border-radius: 20 20 20 20;
+  border-radius: 20px;
   padding: 10px;
 }
