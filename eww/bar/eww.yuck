@@ -13,6 +13,7 @@
 (defpoll microphone_icon :interval "2s" "scripts/audio --get-micicon")
 
 (defpoll charge_limit :interval "1s" "cat /sys/class/power_supply/BAT0/charge_control_end_threshold")
+(defvar show_battery "false")
 
 (defpoll hour :interval "1s" "scripts/time_info --hour")
 (defpoll minutes :interval "1s" "scripts/time_info --minutes")
@@ -80,7 +81,7 @@
           (label
             :valign "fill"
             :class "date"
-            :markup "<span font-weight=\"light\" font-size=\"small\">${date}</span>"))))))
+            :markup "<span font-weight=\"light\" font-size=\"small\">${date}</span>" ))))))
 
 ;; POPUP CALENDAR
 (defwidget popup_calendar []
@@ -107,8 +108,7 @@
       :label "Charge Limit: "
       :value charge_limit
       :onchange "asusctl -c {}"
-      :min 20
-    )))
+      :min 20 )))
 
 ;; PROGRESS BAR TEMPLATE
 (defwidget progress_scale [label value onchange ?action ?min]
@@ -153,12 +153,18 @@
 
 ;; TRACKERS WIDGET
 (defwidget trackers []
-  (box :class "circularMetric" :visible show
+  (box :class "circularMetric" :visible show :space-evenly: false
     (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
     (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
-    (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
-    (button :onclick "scripts/popup_windows --power-manager"
-      (progress_circle :label "🔋" :class_inherit "${power_mode} ${EWW_BATTERY.BAT0.status}" :value {EWW_BATTERY.BAT0.capacity} :tooltip "${EWW_BATTERY.BAT0.capacity}%")))))
+    (eventbox
+      :onhover "${eww} update show_battery='true'"
+      :onhoverlost "${eww} update show_battery='false'"
+        (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
+          (button :onclick "scripts/popup_windows --power-manager"
+            (box :space-evenly false
+              (progress_circle :label "🔋" :class_inherit "${power_mode} ${EWW_BATTERY.BAT0.status}" :value {EWW_BATTERY.BAT0.capacity})
+                (revealer :reveal show_battery :valign "fill" :transition "slideright" 
+                  (label :text "${EWW_BATTERY.BAT0.capacity}%"))))))))
 
 ;; ADJUSTABLE SETTINGS
 (defwidget settings []
