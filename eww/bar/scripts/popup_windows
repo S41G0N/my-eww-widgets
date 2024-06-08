@@ -4,7 +4,6 @@ eww="eww -c $HOME/.config/eww/bar"
 #Used for positioning the popup windows
 RESOLUTION=$(echo hyprctl monitors | grep -oP '\d+x\d+(?=@)' | head -n1)
 
-
 if [ "$1" == "--calendar" ];then
   $eww close calendar || (\
       $eww update day="`scripts/time_info --day`"; \
@@ -15,4 +14,8 @@ if [ "$1" == "--calendar" ];then
 elif [ "$1" == "--power-manager" ];then
   $eww close powerManager || (\
       $eww open powerManager ) 
+
+elif [ "$1" == "--main-bar" ];then
+  $eww close bar || (\
+      $eww open bar --screen 0 ) 
 fi

@@ -8,7 +8,7 @@
 
 *{
   font-family: 'JetBrains Mono ExtraBold';
-  font-size:14px;
+  font-size:16px;
   background-color:transparent;
   border:none;
 }
@@ -18,7 +18,6 @@
   padding:1px 10px 1px 10px;
   background-color: $main-container-blue;
   border-radius: 80px;
-  margin-bottom:7px;
 }
 
 /* WORKSPACES SETTINGS */
@@ -96,15 +95,13 @@
 
 .circularMetric label{
   margin-right: 3px;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .circularMetric circular-progress{
   color: $cherry-red;
   background-color: $dark-gray;
-  margin: 1px;
 }
-
 
 /* BATTERY WIDGETS COLORS */
 
@@ -137,11 +134,11 @@
 
 .time {
   color: $off-white;
-  font-size: 16px;
+  font-size: 17px;
 }
 .date {
   color: $off-white;
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .popup-window {

@@ -14,6 +14,8 @@
 
 (defpoll charge_limit :interval "1s" "cat /sys/class/power_supply/BAT0/charge_control_end_threshold")
 (defvar show_battery "false")
+(defvar show_disk_space "false")
+(defvar show_ram "false")
 
 (defpoll hour :interval "1s" "scripts/time_info --hour")
 (defpoll minutes :interval "1s" "scripts/time_info --minutes")
@@ -105,7 +107,7 @@
     (button :onclick "${power_profile} balanced & ${toggle_window} --power-manager"(label :text "Balanced"))
     (button :onclick "${power_profile} performance && ${toggle_window} --power-manager"(label :text "Performance"))
     (progress_scale
-      :label "Charge Limit: "
+      :label "Charge Limit: ${charge_limit}"
       :value charge_limit
       :onchange "asusctl -c {}"
       :min 20 )))
@@ -127,7 +129,7 @@
     (circular-progress
       :start-at 50
       :value value
-      :thickness 3)))
+      :thickness 3.6)))
 
 ;; ADJUSTABLE SETTINGS
 (defwidget adjustables []
@@ -153,9 +155,21 @@
 
 ;; TRACKERS WIDGET
 (defwidget trackers []
-  (box :class "circularMetric" :visible show :space-evenly: false
-    (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
-    (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
+  (box :class "circularMetric" :visible show :space-evenly false
+    (eventbox
+      :onhover "${eww} update show_ram='true'"
+      :onhoverlost "${eww} update show_ram='false'"
+        (box :space-evenly false
+          (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
+            (revealer :reveal show_ram :valign "fill" :transition "slideright" 
+              (label :text "${round(EWW_RAM.used_mem_perc, 1)}%"))))
+    (eventbox
+      :onhover "${eww} update show_disk_space='true'"
+      :onhoverlost "${eww} update show_disk_space='false'"
+        (box :space-evenly false
+          (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
+            (revealer :reveal show_disk_space :valign "fill" :transition "slideright" 
+              (label :text "${round(EWW_DISK["/"].used_perc, 1)}%"))))
     (eventbox
       :onhover "${eww} update show_battery='true'"
       :onhoverlost "${eww} update show_battery='false'"
