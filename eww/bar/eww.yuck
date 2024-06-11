@@ -116,11 +116,12 @@
 (defwidget progress_scale [label value onchange ?action ?min]
   (box :orientation "h" :class "trackerMetric" :space-evenly false
     (button :class "trackerIcons" :onclick action label)
-    (scale :min {0 + min}
-           :max 101
-           :active {onchange != ""}
-           :value value
-           :onchange onchange)))
+    (scale 
+      :min {0 + min}
+      :max 101
+      :active {onchange != ""}
+      :value value
+      :onchange onchange)))
 
 ;; PROGRESS CIRCLE TEMPLATE
 (defwidget progress_circle [?tooltip ?label ?class_inherit value]
@@ -227,7 +228,7 @@
 (defwindow calendar
   :monitor 0
   ;NEEDS TO BE SET DYNAMIC
-  :geometry (geometry :x 490 :y 10 :width 300 :height 100)
+  :geometry (geometry :x 870 :y 10 :width 300 :height 100)
   :stacking "fg"
   :windowtype "dock"
   :wm-ignore "false"
@@ -236,7 +237,7 @@
 ;; POWER MANAGEMENT WINDOW
 (defwindow powerManager
   :monitor 0
-  :geometry (geometry :x 910 :y 10 :width 140 :height 100)
+  :geometry (geometry :x 1240 :y 10 :width 140 :height 100)
   :stacking "fg"
   :windowtype "normal"
   :wm-ignore "false"
