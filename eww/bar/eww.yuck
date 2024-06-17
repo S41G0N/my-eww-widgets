@@ -161,23 +161,34 @@
       :onhover "${eww} update show_ram='true'"
       :onhoverlost "${eww} update show_ram='false'"
         (box :space-evenly false
-          (progress_circle :label "💾" :value {EWW_RAM.used_mem_perc})
+          (progress_circle 
+            :label "💾" 
+            :class_inherit "${EWW_RAM.used_mem_perc > 80 ? "high" : EWW_RAM.used_mem_perc > 50 ? "medium" : "low"}" 
+            :value {EWW_RAM.used_mem_perc})
             (revealer :reveal show_ram :valign "fill" :transition "slideright" 
               (label :text "${round(EWW_RAM.used_mem_perc, 1)}%"))))
+
     (eventbox
       :onhover "${eww} update show_disk_space='true'"
       :onhoverlost "${eww} update show_disk_space='false'"
         (box :space-evenly false
-          (progress_circle :label "💻" :value {EWW_DISK["/"].used_perc})
+          (progress_circle 
+            :label "💻" 
+            :class_inherit "${EWW_DISK["/"].used_perc > 80 ? "high" : EWW_DISK["/"].used_perc > 50 ? "medium" : "low"}" 
+            :value {EWW_DISK["/"].used_perc})
             (revealer :reveal show_disk_space :valign "fill" :transition "slideright" 
               (label :text "${round(EWW_DISK["/"].used_perc, 1)}%"))))
+
     (eventbox
       :onhover "${eww} update show_battery='true'"
       :onhoverlost "${eww} update show_battery='false'"
         (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
           (button :onclick "scripts/popup_windows --power-manager"
             (box :space-evenly false
-              (progress_circle :label "🔋" :class_inherit "${power_mode} ${EWW_BATTERY.BAT0.status}" :value {EWW_BATTERY.BAT0.capacity})
+              (progress_circle 
+                :label "🔋" 
+                :class_inherit "${power_mode} ${EWW_BATTERY.BAT0.status}" 
+                :value {EWW_BATTERY.BAT0.capacity})
                 (revealer :reveal show_battery :valign "fill" :transition "slideright" 
                   (label :text "${EWW_BATTERY.BAT0.capacity}%"))))))))
 

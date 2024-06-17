@@ -125,6 +125,18 @@
   @include transition-color($light-green, 0.7s, ease-in-out);
 }
 
+.low circular-progress{
+  @include transition-color($light-green, 0.7s, ease-in-out);
+}
+
+.medium circular-progress{
+  @include transition-color($pastel-yellow, 0.7s, ease-in-out);
+}
+
+.high circular-progress{
+  @include transition-color($dark-salmon, 0.7s, ease-in-out);
+}
+
 /*TIME AND CALENDAR SETTINGS*/
 .time_box {
   margin-top: -20px;
