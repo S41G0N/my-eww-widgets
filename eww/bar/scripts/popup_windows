@@ -9,11 +9,12 @@ if [ "$1" == "--calendar" ];then
       $eww update day="`scripts/time_info --day`"; \
       $eww update month="`scripts/time_info --month`"; \
       $eww update year="`scripts/time_info --year`"; \
-      $eww open calendar ) 
+      $eww open calendar) 
 
 elif [ "$1" == "--power-manager" ];then
+  X_COR=$(python scripts/get_positions.py --battery_coordinates)
   $eww close powerManager || (\
-      $eww open powerManager ) 
+      $eww open powerManager --arg x_cor=$X_COR) 
 
 elif [ "$1" == "--main-bar" ];then
   $eww close bar || (\

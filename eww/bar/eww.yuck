@@ -239,16 +239,16 @@
 (defwindow calendar
   :monitor 0
   ;NEEDS TO BE SET DYNAMIC
-  :geometry (geometry :x 870 :y 10 :width 300 :height 100)
+  :geometry (geometry :anchor "top center" :y 10 :width 300 :height 100 )
   :stacking "fg"
   :windowtype "dock"
   :wm-ignore "false"
   (popup_calendar))
 
 ;; POWER MANAGEMENT WINDOW
-(defwindow powerManager
+(defwindow powerManager [x_cor]
   :monitor 0
-  :geometry (geometry :x 1240 :y 10 :width 140 :height 100)
+  :geometry (geometry :x {x_cor} :y 10 :width 240 :height 100)
   :stacking "fg"
   :windowtype "normal"
   :wm-ignore "false"
