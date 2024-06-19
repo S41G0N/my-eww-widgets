@@ -225,10 +225,10 @@
 
 ;; ########################################## WINDOWS #################################################
 ;; BAR WINDOW
-(defwindow bar
+(defwindow bar [width]
   :monitor 0
   :windowtype "dock"
-  :geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width "60%")
+  :geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width {width})
   :exclusive true
   ;:reserve (struts :side "top" :distance "70px")
   :stacking "fg"

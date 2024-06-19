@@ -1,9 +1,6 @@
 #!/bin/sh
 eww="eww -c $HOME/.config/eww/bar"
 
-#Used for positioning the popup windows
-RESOLUTION=$(echo hyprctl monitors | grep -oP '\d+x\d+(?=@)' | head -n1)
-
 if [ "$1" == "--calendar" ];then
   $eww close calendar || (\
       $eww update day="`scripts/time_info --day`"; \
@@ -12,11 +9,12 @@ if [ "$1" == "--calendar" ];then
       $eww open calendar) 
 
 elif [ "$1" == "--power-manager" ];then
-  X_COR=$(python scripts/get_positions.py --battery_coordinates)
+  X_COR=$(python ~/.config/eww/bar/scripts/get_positions.py --battery_coordinates)
   $eww close powerManager || (\
       $eww open powerManager --arg x_cor=$X_COR) 
 
 elif [ "$1" == "--main-bar" ];then
+  WIDTH=$(python ~/.config/eww/bar/scripts/get_positions.py --main_bar_width)
   $eww close bar || (\
-      $eww open bar --screen 0 ) 
+      $eww open bar --screen 0 --arg width=$WIDTH) 
 fi
