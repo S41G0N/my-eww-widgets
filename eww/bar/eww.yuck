@@ -8,23 +8,22 @@
 
 (defpoll time_tmp :interval "20s" `date +" %a %d %b %R"`)
 (defpoll power_mode :interval "1s" `system76-power profile | grep 'Power Profile' | awk -F': ' '{print $2}' | xargs`)
-
 (defpoll volume_icon :interval "2s" "scripts/audio --get-volicon")
 (defpoll microphone_icon :interval "2s" "scripts/audio --get-micicon")
-
 (defpoll charge_limit :interval "1s" "cat /sys/class/power_supply/BAT0/charge_control_end_threshold")
-(defvar show_battery "false")
-(defvar show_disk_space "false")
-(defvar show_ram "false")
-
 (defpoll hour :interval "1s" "scripts/time_info --hour")
 (defpoll minutes :interval "1s" "scripts/time_info --minutes")
 (defpoll type :interval "1s" "scripts/time_info --type")
 (defpoll date :interval "1s" "scripts/time_info --date")
+(defpoll wifi_status :interval "1s" "scripts/network")
 
-(defvar date_reveal false)
+(defvar show_battery false)
+(defvar show_disk_space false)
+(defvar show_ram false)
+(defvar show_date false)
+(defvar show_settings false)
+(defvar show true)
 (defvar settings_wheel "⚙")
-(defvar settings_reveal false)
 (defvar day "0")
 (defvar month "0")
 (defvar year "0")
@@ -32,9 +31,6 @@
 (defvar toggle_window "python scripts/popup_windows.py")
 (defvar power_profile "system76-power profile")
 (defvar eww "eww -c $HOME/.config/eww/bar")
-(defvar show "true")
-
-(defpoll wifi_status :interval "1s" "scripts/network")
 
 ;; ################################################ WIDGETS ##########################################
 ;; WIFI WIDGET
@@ -61,8 +57,8 @@
 ;; TIME WIDGET
 (defwidget time []
   (eventbox
-    :onhover "${eww} update date_reveal=true"
-    :onhoverlost "${eww} update date_reveal=false"
+    :onhover "${eww} update show_date=true"
+    :onhoverlost "${eww} update show_date=false"
     (button
       :onclick "${toggle_window} --calendar"
       (box
@@ -76,7 +72,7 @@
           :class "time"
           :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>")
         (revealer
-          :reveal date_reveal
+          :reveal show_date
           :transition "slideright"
           :duration "350ms"
           :valign "fill"
@@ -158,8 +154,8 @@
 (defwidget trackers []
   (box :class "circularMetric" :visible show :space-evenly false
     (eventbox
-      :onhover "${eww} update show_ram='true'"
-      :onhoverlost "${eww} update show_ram='false'"
+      :onhover "${eww} update show_ram=true"
+      :onhoverlost "${eww} update show_ram=false"
         (box :space-evenly false
           (progress_circle 
             :label "💾" 
@@ -169,8 +165,8 @@
               (label :text "${round(EWW_RAM.used_mem_perc, 1)}%"))))
 
     (eventbox
-      :onhover "${eww} update show_disk_space='true'"
-      :onhoverlost "${eww} update show_disk_space='false'"
+      :onhover "${eww} update show_disk_space=true"
+      :onhoverlost "${eww} update show_disk_space=false"
         (box :space-evenly false
           (progress_circle 
             :label "💻" 
@@ -180,8 +176,8 @@
               (label :text "${round(EWW_DISK["/"].used_perc, 1)}%"))))
 
     (eventbox
-      :onhover "${eww} update show_battery='true'"
-      :onhoverlost "${eww} update show_battery='false'"
+      :onhover "${eww} update show_battery=true"
+      :onhoverlost "${eww} update show_battery=false"
         (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
           (button :onclick "python scripts/popup_windows.py --powerManager"
             (box :space-evenly false
@@ -195,8 +191,8 @@
 ;; ADJUSTABLE SETTINGS
 (defwidget settings []
   (eventbox
-    :onhover "${eww} update settings_reveal=true && ${eww} update settings_wheel='⚙ ' && ${eww} update show='false'"
-    :onhoverlost "${eww} update settings_reveal=false && ${eww} update settings_wheel='⚙' && ${eww} update show='true'"
+    :onhover "${eww} update show_settings=true && ${eww} update settings_wheel='⚙ ' && ${eww} update show=false"
+    :onhoverlost "${eww} update show_settings=false && ${eww} update settings_wheel='⚙' && ${eww} update show='true'"
     (box
       :class "time_box"
       :space-evenly "false"
@@ -207,7 +203,7 @@
         :visible true
         :text "${settings_wheel}")
       (revealer
-        :reveal settings_reveal
+        :reveal show_settings
         :transition "slideright"
         :duration "450ms"
         :valign "fill"
