@@ -29,7 +29,7 @@
 (defvar month "0")
 (defvar year "0")
 
-(defvar toggle_window "scripts/popup_windows")
+(defvar toggle_window "python scripts/popup_windows.py")
 (defvar power_profile "system76-power profile")
 (defvar eww "eww -c $HOME/.config/eww/bar")
 (defvar show "true")
@@ -103,9 +103,9 @@
 (defwidget popup_power_management []
   (box :class "popup-window"
     :orientation "v"
-    (button :onclick "${power_profile} battery && ${toggle_window} --power-manager" (label :text "Battery"))
-    (button :onclick "${power_profile} balanced & ${toggle_window} --power-manager"(label :text "Balanced"))
-    (button :onclick "${power_profile} performance && ${toggle_window} --power-manager"(label :text "Performance"))
+    (button :onclick "${power_profile} battery && ${toggle_window} --powerManager" (label :text "Battery"))
+    (button :onclick "${power_profile} balanced & ${toggle_window} --powerManager"(label :text "Balanced"))
+    (button :onclick "${power_profile} performance && ${toggle_window} --powerManager"(label :text "Performance"))
     (progress_scale
       :label "Charge Limit: ${charge_limit}"
       :value charge_limit
@@ -183,7 +183,7 @@
       :onhover "${eww} update show_battery='true'"
       :onhoverlost "${eww} update show_battery='false'"
         (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
-          (button :onclick "scripts/popup_windows --power-manager"
+          (button :onclick "python scripts/popup_windows.py --powerManager"
             (box :space-evenly false
               (progress_circle 
                 :label "🔋" 
@@ -225,7 +225,7 @@
 
 ;; ########################################## WINDOWS #################################################
 ;; BAR WINDOW
-(defwindow bar [width]
+(defwindow mainbar [width]
   :monitor 0
   :windowtype "dock"
   :geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width {width})

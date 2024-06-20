@@ -3,12 +3,7 @@ import argparse
 import json
 from typing import List
 
-WIDGET_HEIGHT = 100
-WIDGET_Y_OFFSET = 10
-CALENDAR_WIDTH = 300
 BATTERY_WIDTH = 240
-WIDGET_WIDTH_PERCENTAGE = 60
-
 
 def get_monitor_resolution() -> List[int]:
     monitor_info = "hyprctl monitors -j | jq '.[0] | {width, height, scale}'"
@@ -28,44 +23,12 @@ def get_monitor_resolution() -> List[int]:
     y_res = results["height"] / monitor_scale
     return [x_res, y_res]
 
-
-def get_battery_coordinates() -> None:
+def get_battery_coordinates() -> int:
     monitor_resolution = get_monitor_resolution()
-    x_coordinate = (
-        monitor_resolution[0] - (monitor_resolution[0] * 0.6 / 2) - BATTERY_WIDTH
-    )
-    print(x_coordinate)
+    x_coordinate = int(monitor_resolution[0] - (monitor_resolution[0] * 0.6 / 2) - BATTERY_WIDTH)
+    return x_coordinate
 
-
-def get_main_bar_width() -> None:
+def get_main_bar_width() -> int:
     monitor_resolution = get_monitor_resolution()
     bar_width = int(monitor_resolution[0] * 0.4)
-    print(bar_width)
-
-
-def main():
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Extract resolution details.")
-    parser.add_argument(
-        "--battery_coordinates",
-        action="store_true",
-        help="get X/Y coordinates of battery",
-    )
-    parser.add_argument(
-        "--main_bar_width",
-        action="store_true",
-        help="get the width of the main bar in pixels",
-    )
-    args = parser.parse_args()
-
-    if args.battery_coordinates:
-        get_battery_coordinates()
-
-    elif args.main_bar_width:
-        get_main_bar_width()
-
-    else:
-        print("Please provide a valid flag: --main_bar_width or --battery_coordinates")
-
-if __name__ == "__main__":
-    main()
+    return bar_width
