@@ -11,7 +11,7 @@ open_widgets = {
 }
 
 
-def toggle_window(window) -> None:
+def toggle_window(window: str) -> None:
     close_window = f"{eww} close {window}"
     open_window = open_widgets[window]
     try:

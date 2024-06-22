@@ -1,5 +1,0 @@
-#!/bin/bash
-
-CFG="$HOME/.config/eww/bar"
-eww --config "$CFG" open bar --screen 0
-#~/Stack/eww/target/release/eww --config "$CFG" open powermenu --screen 0

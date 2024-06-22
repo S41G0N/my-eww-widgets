@@ -1,7 +1,7 @@
 ;; ######################################### VARIABLES ##############################################
 (deflisten get_layout "scripts/layout --get-layout")
 (deflisten workspaces_list :initial "[]" "scripts/get-workspaces")
-(deflisten current_workspace :initial "[]" "scripts/get-active-workspace")
+(deflisten current_workspace :initial "[]" "scripts/current_workspace")
 (deflisten volume_vol "scripts/audio --get-vol")
 (deflisten microphone_vol "scripts/audio --get-mic")
 (deflisten brightness "scripts/brightness")

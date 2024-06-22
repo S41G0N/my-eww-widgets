@@ -1,0 +1,11 @@
+#!/bin/bash
+#Connect to Hyprland Socket & Extract the current displayed workspace
+
+getWorkspaces(){
+    ACTIVE_WINDOW=$(hyprctl activeworkspace -j | jq '[{ "key": (.monitorID | tostring), "value": .id }] | from_entries')
+    echo $ACTIVE_WINDOW
+}
+
+socat -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock - | while read -r line; do
+	getWorkspaces
+done
