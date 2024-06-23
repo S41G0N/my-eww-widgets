@@ -1,12 +1,65 @@
 import subprocess
 import argparse
-from get_positions import get_main_bar_width, get_battery_coordinates
+import os
+from typing import List
+import json
+
+def read_config(file_path):
+    config = {}
+    with open(file_path, "r") as file:
+        for line in file:
+            line = line.strip()
+            # Ignore empty lines and comments
+            if not line or line.startswith("#"):
+                continue
+            # Split the line into key and value
+            key, value = line.split("=", 1)
+            config[key.strip()] = value.strip()
+    return config
+
 
 eww = "eww -c ~/.config/eww/bar"
+CONFIG = read_config(os.path.expanduser("~/.config/eww/bar/bar.conf"))
+BATTERY_WIDTH = int(CONFIG.get("BATTERY_WIDGET_WIDTH_PX", 400))
+
+
+def get_scaled_resolution() -> List[int]:
+    monitor_info = "hyprctl monitors -j | jq '.[0] | {width, height, scale}'"
+    # Execute the command using subprocess.Popen
+    process = subprocess.Popen(
+        monitor_info,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    stdout, stderr = process.communicate()
+    output = stdout.strip()
+    results = json.loads(output)
+    monitor_scale = results["scale"]
+    x_res = results["width"] / monitor_scale
+    y_res = results["height"] / monitor_scale
+    return [x_res, y_res]
+
+
+def get_battery_coordinates() -> int:
+    monitor_resolution = get_scaled_resolution()
+    x_coordinate = int(
+        monitor_resolution[0] - (monitor_resolution[0] * 0.6 / 2) - BATTERY_WIDTH
+    )
+    return x_coordinate
+
+
+def get_main_bar_width() -> int:
+    monitor_resolution = get_scaled_resolution()
+    bar_width_percentage = int(CONFIG.get("BAR_WIDTH", 50)) / 100
+    bar_width = int(monitor_resolution[0] * bar_width_percentage)
+    return bar_width
+
 
 open_widgets = {
     "calendar": f"{eww} update day='`scripts/time_info --day`' && {eww} update month='`scripts/time_info --month`' && {eww} update year='`scripts/time_info --year`' && {eww} open calendar",
-    "powerManager": f"{eww} open powerManager --arg x_cor={get_battery_coordinates()}",
+    "powerManager": f"{eww} open powerManager --arg x_cor={get_battery_coordinates()} --arg width={BATTERY_WIDTH}",
     "mainbar": f"{eww} open mainbar --screen 0 --arg width={get_main_bar_width()}",
 }
 

@@ -242,9 +242,9 @@
   (popup_calendar))
 
 ;; POWER MANAGEMENT WINDOW
-(defwindow powerManager [x_cor]
+(defwindow powerManager [x_cor ?width]
   :monitor 0
-  :geometry (geometry :x {x_cor} :y 10 :width 240 :height 100)
+  :geometry (geometry :x {x_cor} :y 10 :width {width} :height 100)
   :stacking "fg"
   :windowtype "normal"
   :wm-ignore "false"
