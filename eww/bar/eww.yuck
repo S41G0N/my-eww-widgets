@@ -16,6 +16,7 @@
 (defpoll type :interval "1s" "scripts/time_info --type")
 (defpoll date :interval "1s" "scripts/time_info --date")
 (defpoll wifi_status :interval "1s" "scripts/network")
+(defpoll current_window_title :interval "1s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
 
 (defvar show_battery false)
 (defvar show_disk_space false)
@@ -110,7 +111,7 @@
 
 ;; PROGRESS BAR TEMPLATE
 (defwidget progress_scale [label value onchange ?action ?min]
-  (box :orientation "h" :class "trackerMetric" :space-evenly false
+  (box :orientation "h" :class "trackerMetric" :space-evenly false :halign "center"
     (button :class "trackerIcons" :onclick action label)
     (scale 
       :min {0 + min}
@@ -149,6 +150,14 @@
       (button :onclick "scripts/layout --switch-layout" :timeout "10s"
         (label :text "⌨"))
       (label :markup "<span font-size=\"small\" font-weight=\"light\">${get_layout}</span>")))
+
+;; ADJUSTABLE SETTINGS
+(defwidget workspace_trackers []
+  (box :space-evenly true
+      (workspaces)
+      (label 
+        :halign "center"
+        :markup "<span font-size=\"small\" font-weight=\"light\">${current_window_title}</span>")))
 
 ;; TRACKERS WIDGET
 (defwidget trackers []
@@ -192,7 +201,7 @@
 (defwidget settings []
   (eventbox
     :onhover "${eww} update show_settings=true && ${eww} update settings_wheel='⚙ ' && ${eww} update show=false"
-    :onhoverlost "${eww} update show_settings=false && ${eww} update settings_wheel='⚙' && ${eww} update show='true'"
+    :onhoverlost "${eww} update show_settings=false && ${eww} update settings_wheel='⚙' && ${eww} update show=true"
     (box
       :class "time_box"
       :space-evenly "false"
@@ -212,7 +221,7 @@
 ;; FINAL BAR CONTAINER
 (defwidget full_bar []
   (centerbox :class "main-container" :orientation "h" :halign "true"
-  (box :halign "start"  (workspaces))
+  (box :halign "start"  (workspace_trackers))
     (box :halign "center" (time))
     (box :halign "end" :space-evenly false
     (wifi)
