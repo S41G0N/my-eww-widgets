@@ -153,11 +153,16 @@
 
 ;; ADJUSTABLE SETTINGS
 (defwidget workspace_trackers []
-  (box :space-evenly true
-      (workspaces)
+  (box 
+    :space-evenly false
+    (workspaces)
+    (box 
+      :class "current-window-title"
       (label 
-        :halign "center"
-        :markup "<span font-size=\"small\" font-weight=\"light\">${current_window_title}</span>")))
+        :unindent true
+        :truncate true
+        :limit-width 29
+        :markup "<span font-size=\"x-small\" font-weight=\"light\">${current_window_title}</span>"))))
 
 ;; TRACKERS WIDGET
 (defwidget trackers []
