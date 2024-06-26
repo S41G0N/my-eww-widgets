@@ -2,7 +2,7 @@
 #Connect to Hyprland Socket & Extract the current displayed workspace
 
 getWorkspaces(){
-    ACTIVE_WINDOW=$(hyprctl activeworkspace -j | jq '[{ "key": (.monitorID | tostring), "value": .id }] | from_entries')
+    ACTIVE_WINDOW=$(hyprctl monitors -j | jq 'map({key: .id | tostring, value: .activeWorkspace.id}) | from_entries')
     echo $ACTIVE_WINDOW
 }
 

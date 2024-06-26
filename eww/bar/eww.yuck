@@ -39,7 +39,7 @@
     (box :orientation "h" :class "margin-separate" :space-evenly "false" :visible show
         (button :onclick "iwgtk" :timeout "25s"
             (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))
-            (label :markup "<span font-size=\"small\" font-weight=\"light\">${wifi_status}</span>")))
+            (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${wifi_status}</span>")))
 
 ;; WORKSPACE TRACKER
 (defwidget workspaces []
@@ -103,8 +103,9 @@
     (button :onclick "${power_profile} battery && ${toggle_window} --powerManager" (label :text "Battery"))
     (button :onclick "${power_profile} balanced & ${toggle_window} --powerManager"(label :text "Balanced"))
     (button :onclick "${power_profile} performance && ${toggle_window} --powerManager"(label :text "Performance"))
+    (label :text "Charge Limit:")
     (progress_scale
-      :label "Charge Limit: ${charge_limit}"
+      :label "🔋${charge_limit}%"
       :value charge_limit
       :onchange "asusctl -c {}"
       :min 20 )))
