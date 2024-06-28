@@ -1,10 +1,11 @@
 ;; ######################################### VARIABLES ##############################################
 (deflisten get_layout "scripts/layout --get-layout")
-(deflisten workspaces_list :initial "[]" "scripts/get-workspaces")
+(deflisten workspaces_list :initial "[]" "scripts/get_workspaces")
 (deflisten current_workspace :initial "[]" "scripts/current_workspace")
 (deflisten volume_vol "scripts/audio --get-vol")
 (deflisten microphone_vol "scripts/audio --get-mic")
 (deflisten brightness "scripts/brightness")
+(defpoll ip_address :interval "20s" "ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | tail -n1")
 
 (defpoll time_tmp :interval "20s" `date +" %a %d %b %R"`)
 (defpoll power_mode :interval "1s" `system76-power profile | grep 'Power Profile' | awk -F': ' '{print $2}' | xargs`)
@@ -16,30 +17,51 @@
 (defpoll type :interval "1s" "scripts/time_info --type")
 (defpoll date :interval "1s" "scripts/time_info --date")
 (defpoll wifi_status :interval "1s" "scripts/network")
-(defpoll current_window_title :interval "1s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
+(defpoll current_window_title :interval "0.5s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
 
 (defvar show_battery false)
 (defvar show_disk_space false)
 (defvar show_ram false)
 (defvar show_date false)
 (defvar show_settings false)
+(defvar show_network true)
+(defvar show_ip false)
 (defvar show true)
 (defvar settings_wheel "⚙")
 (defvar day "0")
 (defvar month "0")
 (defvar year "0")
 
+(defvar cycle_kbd_brightness "asusctl -n")
+(defvar switch_layout "scripts/layout --switch-layout")
 (defvar toggle_window "python scripts/popup_windows.py")
 (defvar power_profile "system76-power profile")
 (defvar eww "eww -c $HOME/.config/eww/bar")
+(defvar launch "scripts/launch_app")
 
 ;; ################################################ WIDGETS ##########################################
 ;; WIFI WIDGET
 (defwidget wifi []
-    (box :orientation "h" :class "margin-separate" :space-evenly "false" :visible show
-        (button :onclick "iwgtk" :timeout "25s"
-            (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))
-            (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${wifi_status}</span>")))
+    (eventbox 
+      :orientation "h" 
+      :visible show 
+      :onhover "${eww} update show_ip=true && ${eww} update show_network=false"
+      :onhoverlost "${eww} update show_ip=false && ${eww} update show_network=true"
+      (box :space-evenly false :class "margin-separate"
+        (button :onclick "${launch} iwgtk"
+          (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))
+        (revealer
+          :reveal show_network
+          :transition "slideleft"
+          :duration "350ms"
+          :valign "fill"
+          (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${wifi_status}</span>"))
+        (revealer
+          :reveal show_ip
+          :transition "slideright"
+          :duration "350ms"
+          :valign "center"
+          (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${ip_address}</span>")))))
 
 ;; WORKSPACE TRACKER
 (defwidget workspaces []
@@ -99,10 +121,12 @@
 
 (defwidget popup_power_management []
   (box :class "popup-window"
+    :space-evenly false
     :orientation "v"
     (button :onclick "${power_profile} battery && ${toggle_window} --powerManager" (label :text "Battery"))
     (button :onclick "${power_profile} balanced & ${toggle_window} --powerManager"(label :text "Balanced"))
     (button :onclick "${power_profile} performance && ${toggle_window} --powerManager"(label :text "Performance"))
+    (label :text "" :class "white-border")
     (label :text "Charge Limit:")
     (progress_scale
       :label "🔋${charge_limit}%"
@@ -111,9 +135,9 @@
       :min 20 )))
 
 ;; PROGRESS BAR TEMPLATE
-(defwidget progress_scale [label value onchange ?action ?min]
+(defwidget progress_scale [label value onchange ?action ?min ?right_click]
   (box :orientation "h" :class "trackerMetric" :space-evenly false :halign "center"
-    (button :class "trackerIcons" :onclick action label)
+    (button :class "trackerIcons" :onrightclick right_click :onclick action label)
     (scale 
       :min {0 + min}
       :max 101
@@ -137,18 +161,20 @@
       :label microphone_icon
       :value microphone_vol
       :onchange "scripts/audio --set-mic {}"
-      :action "scripts/audio --toggle-mic")
+      :action "scripts/audio --toggle-mic"
+      :right_click "${launch} helvum")
     (progress_scale
       :label volume_icon
       :value volume_vol
       :onchange "scripts/audio --set-vol {}"
-      :action "scripts/audio --toggle-vol")
+      :action "scripts/audio --toggle-vol"
+      :right_click "${launch} helvum")
     (progress_scale
       :label "🔆"
       :value brightness
       :onchange "scripts/brightness --set-bright {}"
       :action "asusctl -n")
-      (button :onclick "scripts/layout --switch-layout" :timeout "10s"
+      (button :onclick switch_layout :onrightclick cycle_kbd_brightness
         (label :text "⌨"))
       (label :markup "<span font-size=\"small\" font-weight=\"light\">${get_layout}</span>")))
 
@@ -194,7 +220,7 @@
       :onhover "${eww} update show_battery=true"
       :onhoverlost "${eww} update show_battery=false"
         (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
-          (button :onclick "python scripts/popup_windows.py --powerManager"
+          (button :onclick "${toggle_window} --powerManager"
             (box :space-evenly false
               (progress_circle 
                 :label "🔋" 
@@ -228,11 +254,11 @@
 (defwidget full_bar []
   (centerbox :class "main-container" :orientation "h" :halign "true"
   (box :halign "start"  (workspace_trackers))
-    (box :halign "center" (time))
-    (box :halign "end" :space-evenly false
-    (wifi)
-    (trackers)
-    (settings))))
+  (box :halign "center" (time))
+  (box :halign "end" :space-evenly false
+  (wifi)
+  (trackers)
+  (settings))))
 
 ;; ########################################## WINDOWS #################################################
 ;; BAR WINDOW
