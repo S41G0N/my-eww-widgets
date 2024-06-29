@@ -18,6 +18,14 @@
   padding:1px 10px 1px 10px;
   background-color: $main-container-blue;
   border-radius: 80px;
+  border: 3px solid rgba(00,00,00,0.7);
+  margin-bottom: 0.3rem;
+}
+
+.white-border {
+  margin-top: 10px;
+  border-top: 3px solid rgba(256,256,256,0.7);
+  margin-bottom: -5px;
 }
 
 /* WORKSPACES SETTINGS */
@@ -38,7 +46,6 @@
   background-color: $workspace-background-blue;
   border-radius:3px;
 }
-
 
 /* SETS COLOR OF WORKSPACE BUTTONS */
 .occupiedWindow {
@@ -95,7 +102,7 @@
 
 .circularMetric label{
   margin-right: 3px;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .circularMetric circular-progress{
@@ -163,6 +170,10 @@
   padding: 10px;
 }
 
+.popup-window button{
+  margin-bottom:10px;
+}
+
 .hide {
   opacity: 0;
   margin-top: -20px;
@@ -179,6 +190,6 @@
 }
 
 .current-window-title {
-  min-width: 10rem;
+  min-width: 9rem;
   margin-left: 1rem;
 }

@@ -17,7 +17,11 @@
 (defpoll type :interval "1s" "scripts/time_info --type")
 (defpoll date :interval "1s" "scripts/time_info --date")
 (defpoll wifi_status :interval "1s" "scripts/network")
-(defpoll current_window_title :interval "0.5s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
+(defpoll active_window_title :interval "0.1s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
+(defvar selected_window_title "")
+
+(defvar show_active_window true)
+(defvar show_selected_window false)
 
 (defvar show_battery false)
 (defvar show_disk_space false)
@@ -43,10 +47,9 @@
 ;; WIFI WIDGET
 (defwidget wifi []
     (eventbox 
-      :orientation "h" 
       :visible show 
-      :onhover "${eww} update show_ip=true && ${eww} update show_network=false"
-      :onhoverlost "${eww} update show_ip=false && ${eww} update show_network=true"
+      :onhover "${eww} update show_ip=true show_network=false"
+      :onhoverlost "${eww} update show_ip=false show_network=true"
       (box :space-evenly false :class "margin-separate"
         (button :onclick "${launch} iwgtk"
           (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))
@@ -55,27 +58,52 @@
           :transition "slideleft"
           :duration "350ms"
           :valign "fill"
-          (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${wifi_status}</span>"))
+          (label 
+            :truncate true 
+            :limit-width 16
+            :markup "<span font-size=\"x-small\" font-weight=\"light\">${wifi_status}</span>"))
         (revealer
           :reveal show_ip
           :transition "slideright"
           :duration "350ms"
           :valign "center"
-          (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${ip_address}</span>")))))
+          (label 
+            :truncate true
+            :limit-width 16
+            :markup "<span font-size=\"x-small\" font-weight=\"light\">${ip_address}</span>")))))
 
 ;; WORKSPACE TRACKER
 (defwidget workspaces []
   (box :class "workspaces" 
-    (label :text "${workspaces_list} ${current_workspace}" :visible false)
+    (label :text "${current_workspace}" :visible false)
     (for workspace in workspaces_list
-      (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
-        (box :class "default-workspace 
-           ${workspace.id == current_workspace[0] ? "firstScreen" : ""} 
-           ${workspace.id == current_workspace[1] ? "secondScreen" : ""} 
-           ${workspace.id == current_workspace[2] ? "thirdScreen" : ""} 
-           ${workspace.id == current_workspace[3] ? "fourthScreen" : ""} 
-           ${workspace.windows > 0 ? "occupiedWindow" : ""}"
-           (label :text "${workspace.id}"))))))
+      (eventbox
+        :onhover "${eww} update selected_window_title='${replace(workspace.windows[1],'&','&amp;')}'"
+        (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
+          (box :class "default-workspace 
+            ${workspace.id == current_workspace[0] ? "firstScreen" : ""} 
+            ${workspace.id == current_workspace[1] ? "secondScreen" : ""} 
+            ${workspace.id == current_workspace[2] ? "thirdScreen" : ""} 
+            ${workspace.id == current_workspace[3] ? "fourthScreen" : ""} 
+            ${workspace.windows[0] > 0 ? "occupiedWindow" : ""}"
+            (label :text "${workspace.id}")))))))
+
+(defwidget display_window_titles []
+  (box 
+    :class "current-window-title"
+    (revealer :reveal show_selected_window :visible show_selected_window :valign "fill" :transition "slideleft"
+      (label 
+        :unindent true
+        :truncate true
+        :limit-width 1
+        :markup "<span font-size=\"x-small\" font-weight=\"light\">${selected_window_title}</span>"))
+
+    (revealer :reveal show_active_window :visible show_active_window :valign "fill" :transition "slideleft"
+      (label 
+        :unindent true
+        :truncate true
+        :limit-width 1
+        :markup "<span font-size=\"x-small\" font-weight=\"light\">${active_window_title}</span>"))))
 
 ;; TIME WIDGET
 (defwidget time []
@@ -124,7 +152,7 @@
     :space-evenly false
     :orientation "v"
     (button :onclick "${power_profile} battery && ${toggle_window} --powerManager" (label :text "Battery"))
-    (button :onclick "${power_profile} balanced & ${toggle_window} --powerManager"(label :text "Balanced"))
+    (button :onclick "${power_profile} balanced && ${toggle_window} --powerManager"(label :text "Balanced"))
     (button :onclick "${power_profile} performance && ${toggle_window} --powerManager"(label :text "Performance"))
     (label :text "" :class "white-border")
     (label :text "Charge Limit:")
@@ -135,7 +163,7 @@
       :min 20 )))
 
 ;; PROGRESS BAR TEMPLATE
-(defwidget progress_scale [label value onchange ?action ?min ?right_click]
+(defwidget progress_scale [label ?value onchange ?action ?min ?right_click]
   (box :orientation "h" :class "trackerMetric" :space-evenly false :halign "center"
     (button :class "trackerIcons" :onrightclick right_click :onclick action label)
     (scale 
@@ -182,14 +210,11 @@
 (defwidget workspace_trackers []
   (box 
     :space-evenly false
-    (workspaces)
-    (box 
-      :class "current-window-title"
-      (label 
-        :unindent true
-        :truncate true
-        :limit-width 29
-        :markup "<span font-size=\"x-small\" font-weight=\"light\">${current_window_title}</span>"))))
+    (eventbox
+      :onhover "${eww} update show_active_window=false show_selected_window=true"
+      :onhoverlost "${eww} update show_active_window=true show_selected_window=false"
+      (workspaces))
+    (display_window_titles)))
 
 ;; TRACKERS WIDGET
 (defwidget trackers []
@@ -232,8 +257,8 @@
 ;; ADJUSTABLE SETTINGS
 (defwidget settings []
   (eventbox
-    :onhover "${eww} update show_settings=true && ${eww} update settings_wheel='⚙ ' && ${eww} update show=false"
-    :onhoverlost "${eww} update show_settings=false && ${eww} update settings_wheel='⚙' && ${eww} update show=true"
+    :onhover "${eww} update show_settings=true settings_wheel='⚙ ' show=false"
+    :onhoverlost "${eww} update show_settings=false settings_wheel='⚙' show=true"
     (box
       :class "time_box"
       :space-evenly "false"
@@ -267,7 +292,6 @@
   :windowtype "dock"
   :geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width {width})
   :exclusive true
-  ;:reserve (struts :side "top" :distance "70px")
   :stacking "fg"
   :wm-ignore false
   (full_bar))
@@ -275,7 +299,6 @@
 ;; CALENDAR WINDOW
 (defwindow calendar
   :monitor 0
-  ;NEEDS TO BE SET DYNAMIC
   :geometry (geometry :anchor "top center" :y 10 :width 300 :height 100 )
   :stacking "fg"
   :windowtype "dock"
