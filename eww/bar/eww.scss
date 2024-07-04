@@ -97,15 +97,17 @@
 }
 
 .circularMetric{
-  margin-right:5px;
+  margin-right:4px;
 }
 
 .circularMetric label{
-  margin-right: 3px;
+  font-family: 'JetBrains Mono Medium';
+  margin-right: 4px;
   font-size: 14px;
 }
 
 .circularMetric circular-progress{
+  margin:1px;
   color: $cherry-red;
   background-color: $dark-gray;
 }
@@ -162,12 +164,17 @@
 }
 
 .popup-window {
-  font-size: 18px;
+  font-family: 'JetBrains Mono Medium';
+  font-size: 15px;
   background-color: $dark-blue-gray;
   color: $off-white;
-  border: 5px solid $cherry-red;
-  border-radius: 20px;
+  border: 3px solid $cherry-red-transparent;
+  border-radius: 5px;
   padding: 10px;
+  * {
+    font-family: inherit;
+    font-size: inherit;
+  }
 }
 
 .popup-window button{
@@ -190,6 +197,6 @@
 }
 
 .current-window-title {
-  min-width: 9rem;
-  margin-left: 1rem;
+  min-width: 8rem;
+  margin-left: 2rem;
 }

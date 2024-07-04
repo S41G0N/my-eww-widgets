@@ -22,7 +22,6 @@
 
 (defvar show_active_window true)
 (defvar show_selected_window false)
-
 (defvar show_battery false)
 (defvar show_disk_space false)
 (defvar show_ram false)
@@ -180,7 +179,7 @@
     (circular-progress
       :start-at 50
       :value value
-      :thickness 3.6)))
+      :thickness 3.2)))
 
 ;; ADJUSTABLE SETTINGS
 (defwidget adjustables []
@@ -228,7 +227,7 @@
             :class_inherit "${EWW_RAM.used_mem_perc > 80 ? "high" : EWW_RAM.used_mem_perc > 50 ? "medium" : "low"}" 
             :value {EWW_RAM.used_mem_perc})
             (revealer :reveal show_ram :valign "fill" :transition "slideright" 
-              (label :text "${round(EWW_RAM.used_mem_perc, 1)}%"))))
+              (label :markup "${round(EWW_RAM.used_mem_perc, 0)}%"))))
 
     (eventbox
       :onhover "${eww} update show_disk_space=true"
@@ -239,7 +238,7 @@
             :class_inherit "${EWW_DISK["/"].used_perc > 80 ? "high" : EWW_DISK["/"].used_perc > 50 ? "medium" : "low"}" 
             :value {EWW_DISK["/"].used_perc})
             (revealer :reveal show_disk_space :valign "fill" :transition "slideright" 
-              (label :text "${round(EWW_DISK["/"].used_perc, 1)}%"))))
+              (label :text "${round(EWW_DISK["/"].used_perc, 0)}%"))))
 
     (eventbox
       :onhover "${eww} update show_battery=true"
@@ -264,7 +263,8 @@
       :space-evenly "false"
       :orientation "h"
       :halign "fill"
-      (label :valign "center"
+      (label 
+        :valign "center"
         :class "fontLarge"
         :visible true
         :text "${settings_wheel}")
@@ -277,13 +277,24 @@
 
 ;; FINAL BAR CONTAINER
 (defwidget full_bar []
-  (centerbox :class "main-container" :orientation "h" :halign "true"
-  (box :halign "start"  (workspace_trackers))
-  (box :halign "center" (time))
-  (box :halign "end" :space-evenly false
-  (wifi)
-  (trackers)
-  (settings))))
+  (centerbox
+    :space-evenly false
+    :class "main-container" 
+    :orientation "h" 
+    :halign true
+    :hexpand true
+    (box 
+      :halign "start" 
+      (workspace_trackers))
+    (box 
+      :halign "center" 
+      (time))
+    (box 
+      :halign "end"
+      :space-evenly false
+      (wifi)
+      (trackers)
+      (settings))))
 
 ;; ########################################## WINDOWS #################################################
 ;; BAR WINDOW

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import subprocess
 import argparse
 import os
@@ -18,7 +20,7 @@ def read_config(file_path):
     return config
 
 
-eww = "eww -c ~/.config/eww/bar"
+eww = "eww -c '/home/sa1g0n/.config/eww/bar'"
 CONFIG = read_config(os.path.expanduser("~/.config/eww/bar/bar.conf"))
 BATTERY_WIDTH = int(CONFIG.get("BATTERY_WIDGET_WIDTH_PX", 400))
 
