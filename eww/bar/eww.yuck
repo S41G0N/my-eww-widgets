@@ -112,7 +112,7 @@
     (button
       :onclick "${toggle_window} --calendar"
       (box
-        :class "time_box"
+        :class "time_box time"
         :space-evenly "false"
         :orientation "h"
         :valign "center"
@@ -128,7 +128,7 @@
           :valign "fill"
           (label
             :valign "fill"
-            :class "date"
+            :class "time"
             :markup "<span font-weight=\"light\" font-size=\"small\">${date}</span>" ))))))
 
 ;; POPUP CALENDAR
@@ -155,11 +155,15 @@
     (button :onclick "${power_profile} performance && ${toggle_window} --powerManager"(label :text "Performance"))
     (label :text "" :class "white-border")
     (label :text "Charge Limit:")
+    (box :space-evenly false 
     (progress_scale
       :label "🔋${charge_limit}%"
       :value charge_limit
       :onchange "asusctl -c {}"
-      :min 20 )))
+      :min 20 )
+      (box :space-evenly false
+      (button :onclick "asusctl -c ${charge_limit + 1}" (label :text "▲"))
+      (button :onclick "asusctl -c ${charge_limit - 1}" (label :text "▼"))))))
 
 ;; PROGRESS BAR TEMPLATE
 (defwidget progress_scale [label ?value onchange ?action ?min ?right_click]
@@ -265,7 +269,7 @@
       :halign "fill"
       (label 
         :valign "center"
-        :class "fontLarge"
+        :class "settings-wheel"
         :visible true
         :text "${settings_wheel}")
       (revealer
@@ -278,7 +282,6 @@
 ;; FINAL BAR CONTAINER
 (defwidget full_bar []
   (centerbox
-    :space-evenly false
     :class "main-container" 
     :orientation "h" 
     :halign true
