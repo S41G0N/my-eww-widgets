@@ -17,9 +17,11 @@
 .main-container {
   padding:1px 10px 1px 10px;
   background-color: $main-container-blue;
-  border-radius: 80px;
+  border-bottom-left-radius: 22px;
+  border-bottom-right-radius: 22px;
   border: 3px solid rgba(00,00,00,0.7);
-  margin-bottom: 0.7rem;
+  border-top: 0;
+  margin-bottom: 0.3rem;
 }
 
 .white-border {
@@ -71,14 +73,8 @@
 }
 
 /* TRACKERS SETTINGS */
-.trackerIcons,
-.trackerMetric slider,
-.trackerMetric scale trough highlight,
-.trackerMetric scale trough,
-.circularMetric,
+.adjustable-settings,
 .circularMetric button,
-.circularMetric label,
-.circularMetric circular-progress,
 .margin-separate button {
   all: unset;
 }
@@ -146,18 +142,10 @@
   @include transition-bg-color($dark-salmon, 0.7s, ease-in-out);
 }
 
-/*TIME AND CALENDAR SETTINGS*/
-.time_box {
-  margin-top: -20px;
-  margin-bottom: -20px;
-  background-color:transparent;
-  color: white;
-}
-
 .time {
-  font-family: "JetBrains Mono Medium";
+  font-family: "JetBrains Mono Light";
   color: $off-white;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
 }
 
 .popup-window {
@@ -182,9 +170,9 @@
   font-size:1.3em;
 }
 
-.margin-separate label{
-  margin-right: 15px;
-  margin-left: 5px;
+.margin-separate button{
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
 }
 
 .current-window-title {

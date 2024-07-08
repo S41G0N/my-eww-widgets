@@ -13,15 +13,6 @@ case $1 in
     "--date")
         date "+ %a, %b %d"
         ;;
-    "--day")
-        date "+%d"
-        ;;
-    "--month")
-        echo $(( `date "+%m"` -1 ))
-        ;;
-    "--year")
-        date "+%y"
-        ;;
     *)
         true
         ;;

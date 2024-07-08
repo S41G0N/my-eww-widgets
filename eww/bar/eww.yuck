@@ -26,58 +26,52 @@
 (defvar show_disk_space false)
 (defvar show_ram false)
 (defvar show_date false)
+(defvar show_time true)
 (defvar show_settings false)
 (defvar show_network true)
 (defvar show_ip false)
 (defvar show true)
 (defvar settings_wheel "⚙")
-(defvar day "0")
-(defvar month "0")
-(defvar year "0")
 
 (defvar cycle_kbd_brightness "asusctl -n")
 (defvar switch_layout "scripts/layout --switch-layout")
 (defvar toggle_window "python scripts/popup_windows.py")
 (defvar power_profile "system76-power profile")
-(defvar eww "eww -c $HOME/.config/eww/bar")
+(defvar RUN_EWW "eww -c ~/.config/eww/bar")
 (defvar launch "scripts/launch_app")
 
-;; ################################################ WIDGETS ##########################################
-;; WIFI WIDGET
+;; ################################################ NETWORKING ##########################################
+
 (defwidget wifi []
     (eventbox 
       :visible show 
-      :onhover "${eww} update show_ip=true show_network=false"
-      :onhoverlost "${eww} update show_ip=false show_network=true"
+      :onhover "${RUN_EWW} update show_ip=true show_network=false"
+      :onhoverlost "${RUN_EWW} update show_ip=false show_network=true"
       (box :space-evenly false :class "margin-separate"
-        (button :onclick "${launch} iwgtk"
-          (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))
-        (revealer
-          :reveal show_network
-          :transition "slideleft"
-          :duration "350ms"
-          :valign "fill"
-          (label 
-            :truncate true 
-            :limit-width 16
-            :markup "<span font-size=\"x-small\" font-weight=\"light\">${wifi_status}</span>"))
-        (revealer
-          :reveal show_ip
-          :transition "slideright"
-          :duration "350ms"
-          :valign "center"
-          (label 
-            :truncate true
-            :limit-width 16
-            :markup "<span font-size=\"x-small\" font-weight=\"light\">${ip_address}</span>")))))
+        (button :onclick "${toggle_window} --networkManager"
+          (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18")))))
 
+(defwidget popup_network_manager []
+  (box
+    :class "popup-window"
+    :orientation "v"
+    :space-evenly false
+    (label :text "Current Network:")
+    (label :text wifi_status)
+    (label :text "IP Address:")
+    (label :text ip_address)
+    (button
+      :onclick "${launch} iwgtk"
+      (label :text "Network Settings"))))
+
+;; ################################################ WORKSPACE MANAGEMENT ##########################################
 ;; WORKSPACE TRACKER
 (defwidget workspaces []
   (box :class "workspaces" 
     (label :text "${current_workspace}" :visible false)
     (for workspace in workspaces_list
       (eventbox
-        :onhover "${eww} update selected_window_title='${replace(workspace.windows[1],'&','&amp;')}'"
+        :onhover "${RUN_EWW} update selected_window_title='${replace(workspace.windows[1],'&','&amp;')}'"
         (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
           (box :class "default-workspace 
             ${workspace.id == current_workspace[0] ? "firstScreen" : ""} 
@@ -93,37 +87,50 @@
     (revealer :reveal show_selected_window :visible show_selected_window :valign "fill" :transition "slideleft"
       (label 
         :unindent true
-        :truncate true
         :limit-width 1
         :markup "<span font-size=\"x-small\" font-weight=\"light\">${selected_window_title}</span>"))
 
     (revealer :reveal show_active_window :visible show_active_window :valign "fill" :transition "slideleft"
       (label 
         :unindent true
-        :truncate true
         :limit-width 1
         :markup "<span font-size=\"x-small\" font-weight=\"light\">${active_window_title}</span>"))))
 
+(defwidget workspace_trackers []
+  (box 
+    :space-evenly false
+    (eventbox
+      :onhover "${RUN_EWW} update show_active_window=false show_selected_window=true"
+      :onhoverlost "${RUN_EWW} update show_active_window=true show_selected_window=false"
+      (workspaces))
+    (display_window_titles)))
+
+;; ################################################ TIME DISPLAY ##########################################
 ;; TIME WIDGET
 (defwidget time []
   (eventbox
-    :onhover "${eww} update show_date=true"
-    :onhoverlost "${eww} update show_date=false"
+    :onhover "${RUN_EWW} update show_date=true show_time=false"
+    :onhoverlost "${RUN_EWW} update show_date=false show_time=true"
     (button
       :onclick "${toggle_window} --calendar"
       (box
-        :class "time_box time"
+        :class "time"
         :space-evenly "false"
-        :orientation "h"
+        :orientation "v"
         :valign "center"
         :halign "fill"
-        (label
-          :valign "center"
-          :class "time"
-          :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>")
+        (revealer
+          :reveal show_time
+          :transition "slidedown"
+          :duration "350ms"
+          :valign "fill"
+          (label
+            :valign "center"
+            :class "time"
+            :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>"))
         (revealer
           :reveal show_date
-          :transition "slideright"
+          :transition "slideup"
           :duration "350ms"
           :valign "fill"
           (label
@@ -139,14 +146,12 @@
     :valign "fill"
     :halign "fill"
     (calendar
-      :day day
-      :month month
-      :year year
-      :show-details "true"
-      :show-heading "true"
-      :show-day-names "true")))
+      :show-details true
+      :show-heading true
+      :show-day-names true)))
 
-(defwidget popup_power_management []
+;; ################################################ POWER MANAGEMENT ##########################################
+(defwidget popup_power_manager []
   (box :class "popup-window"
     :space-evenly false
     :orientation "v"
@@ -165,25 +170,17 @@
       (button :onclick "asusctl -c ${charge_limit + 1}" (label :text "▲"))
       (button :onclick "asusctl -c ${charge_limit - 1}" (label :text "▼"))))))
 
+;; ################################################ ADJUSTABLE SETTINGS (HIDDEN BEHIND GEAR WHEEL) ##########################################
 ;; PROGRESS BAR TEMPLATE
 (defwidget progress_scale [label ?value onchange ?action ?min ?right_click]
   (box :orientation "h" :class "trackerMetric" :space-evenly false :halign "center"
-    (button :class "trackerIcons" :onrightclick right_click :onclick action label)
+    (button :class "adjustable-settings" :onrightclick right_click :onclick action label)
     (scale 
       :min {0 + min}
       :max 101
       :active {onchange != ""}
       :value value
       :onchange onchange)))
-
-;; PROGRESS CIRCLE TEMPLATE
-(defwidget progress_circle [?tooltip ?label ?class_inherit value]
-  (box :orientation "h" :class "circularMetric ${class_inherit}" :tooltip tooltip
-    (label :class "trackerIcons" :text label)
-    (circular-progress
-      :start-at 50
-      :value value
-      :thickness 3.2)))
 
 ;; ADJUSTABLE SETTINGS
 (defwidget adjustables []
@@ -209,68 +206,17 @@
         (label :text "⌨"))
       (label :markup "<span font-size=\"small\" font-weight=\"light\">${get_layout}</span>")))
 
-;; ADJUSTABLE SETTINGS
-(defwidget workspace_trackers []
-  (box 
-    :space-evenly false
-    (eventbox
-      :onhover "${eww} update show_active_window=false show_selected_window=true"
-      :onhoverlost "${eww} update show_active_window=true show_selected_window=false"
-      (workspaces))
-    (display_window_titles)))
-
-;; TRACKERS WIDGET
-(defwidget trackers []
-  (box :class "circularMetric" :visible show :space-evenly false
-    (eventbox
-      :onhover "${eww} update show_ram=true"
-      :onhoverlost "${eww} update show_ram=false"
-        (box :space-evenly false
-          (progress_circle 
-            :label "💾" 
-            :class_inherit "${EWW_RAM.used_mem_perc > 80 ? "high" : EWW_RAM.used_mem_perc > 50 ? "medium" : "low"}" 
-            :value {EWW_RAM.used_mem_perc})
-            (revealer :reveal show_ram :valign "fill" :transition "slideright" 
-              (label :markup "${round(EWW_RAM.used_mem_perc, 0)}%"))))
-
-    (eventbox
-      :onhover "${eww} update show_disk_space=true"
-      :onhoverlost "${eww} update show_disk_space=false"
-        (box :space-evenly false
-          (progress_circle 
-            :label "💻" 
-            :class_inherit "${EWW_DISK["/"].used_perc > 80 ? "high" : EWW_DISK["/"].used_perc > 50 ? "medium" : "low"}" 
-            :value {EWW_DISK["/"].used_perc})
-            (revealer :reveal show_disk_space :valign "fill" :transition "slideright" 
-              (label :text "${round(EWW_DISK["/"].used_perc, 0)}%"))))
-
-    (eventbox
-      :onhover "${eww} update show_battery=true"
-      :onhoverlost "${eww} update show_battery=false"
-        (revealer :reveal {EWW_BATTERY.BAT0.capacity != '' ? true : false} :valign "fill" :transition "slideright"
-          (button :onclick "${toggle_window} --powerManager"
-            (box :space-evenly false
-              (progress_circle 
-                :label "🔋" 
-                :class_inherit "${power_mode} ${EWW_BATTERY.BAT0.status}" 
-                :value {EWW_BATTERY.BAT0.capacity})
-                (revealer :reveal show_battery :valign "fill" :transition "slideright" 
-                  (label :text "${EWW_BATTERY.BAT0.capacity}%"))))))))
-
-;; ADJUSTABLE SETTINGS
 (defwidget settings []
   (eventbox
-    :onhover "${eww} update show_settings=true settings_wheel='⚙ ' show=false"
-    :onhoverlost "${eww} update show_settings=false settings_wheel='⚙' show=true"
+    :onhover "${RUN_EWW} update show_settings=true settings_wheel='' show=false"
+    :onhoverlost "${RUN_EWW} update show_settings=false settings_wheel='⚙' show=true"
     (box
-      :class "time_box"
       :space-evenly "false"
       :orientation "h"
       :halign "fill"
       (label 
         :valign "center"
         :class "settings-wheel"
-        :visible true
         :text "${settings_wheel}")
       (revealer
         :reveal show_settings
@@ -279,19 +225,63 @@
         :valign "fill"
         (adjustables)))))
 
+;; ################################################ NON-ADJUSTABLE MONITORED METRICS (RAM, MEMORY, BATTERY) ##########################################
+
+(defwidget tracker [switch_property show_widget launch_onclick ?displayed_text ?additional_classes value reveal_when_is_true revealed_value_on_hover]
+  (eventbox
+    :onhover "${RUN_EWW} update ${switch_property}=true"
+    :onhoverlost "${RUN_EWW} update ${switch_property}=false"
+      (revealer :reveal show_widget :valign "fill" :transition "slideright"
+        (button :onclick "${toggle_window} ${launch_onclick}"
+          (box :space-evenly false
+            (box :orientation "h" :class "circularMetric ${additional_classes}"
+              (label :text displayed_text)
+              (circular-progress :start-at 50 :value value :thickness 3.2))
+            (revealer :reveal reveal_when_is_true :valign "fill" :transition "slideright" 
+              (label :text revealed_value_on_hover)))))))
+
+(defwidget trackers []
+  (box :class "circularMetric" :visible show :space-evenly false
+  ;; MEMORY TRACKER
+    (tracker
+      :switch_property "show_ram"
+      :show_widget true
+      :launch_onclick ""
+      :displayed_text "💾" 
+      :additional_classes "${EWW_RAM.used_mem_perc > 80 ? "high" : EWW_RAM.used_mem_perc > 50 ? "medium" : "low"}"
+      :value {EWW_RAM.used_mem_perc}
+      :reveal_when_is_true show_ram
+      :revealed_value_on_hover "${round(EWW_RAM.used_mem_perc, 0)}%")
+
+  ;; RAM TRACKER
+    (tracker
+      :switch_property "show_disk_space"
+      :show_widget true
+      :launch_onclick ""
+      :displayed_text "💻" 
+      :additional_classes "${EWW_DISK["/"].used_perc > 80 ? "high" : EWW_DISK["/"].used_perc > 50 ? "medium" : "low"}" 
+      :value {EWW_DISK["/"].used_perc}
+      :reveal_when_is_true show_disk_space
+      :revealed_value_on_hover "${round(EWW_DISK["/"].used_perc, 0)}%")
+
+  ;; BATTERY TRACKER
+    (tracker
+      :switch_property "show_battery"
+      :show_widget {EWW_BATTERY.BAT0.capacity != '' ? true : false}
+      :launch_onclick "--powerManager"
+      :displayed_text "🔋" 
+      :additional_classes "${power_mode} ${EWW_BATTERY.BAT0.status}"  
+      :value {EWW_BATTERY.BAT0.capacity}
+      :reveal_when_is_true show_battery
+      :revealed_value_on_hover "${EWW_BATTERY.BAT0.capacity}%")))
+
+
+;; ################################################ CONSISTS OF ALL THINGS ABOVE -> CALLED BY defwindow mainbar ##########################################
 ;; FINAL BAR CONTAINER
 (defwidget full_bar []
-  (centerbox
-    :class "main-container" 
-    :orientation "h" 
-    :halign true
-    :hexpand true
-    (box 
-      :halign "start" 
-      (workspace_trackers))
-    (box 
-      :halign "center" 
-      (time))
+  (centerbox :class "main-container" :orientation "h" :halign true :hexpand true
+    (box :halign "start" (workspace_trackers))
+    (box :halign "center" (time))
     (box 
       :halign "end"
       :space-evenly false
@@ -300,11 +290,11 @@
       (settings))))
 
 ;; ########################################## WINDOWS #################################################
-;; BAR WINDOW
+;;  MAIN BAR WINDOW
 (defwindow mainbar [width]
   :monitor 0
   :windowtype "dock"
-  :geometry (geometry :anchor "top center" :y 7 :hexpand true :halign true :width {width})
+  :geometry (geometry :anchor "top center" :hexpand true :halign true :width {width})
   :exclusive true
   :stacking "fg"
   :wm-ignore false
@@ -319,11 +309,20 @@
   :wm-ignore "false"
   (popup_calendar))
 
-;; POWER MANAGEMENT WINDOW
+;; POWER MANAGER WINDOW
 (defwindow powerManager [x_cor ?width]
   :monitor 0
   :geometry (geometry :x {x_cor} :y 10 :width {width} :height 100)
   :stacking "fg"
   :windowtype "normal"
   :wm-ignore "false"
-  (popup_power_management))
+  (popup_power_manager))
+
+;; NETWORK MANAGER WINDOW
+(defwindow networkManager [x_cor ?width]
+  :monitor 0
+  :geometry (geometry :x {x_cor} :y 10 :width {width} :height 100)
+  :stacking "fg"
+  :windowtype "normal"
+  :wm-ignore "false"
+  (popup_network_manager))
