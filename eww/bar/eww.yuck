@@ -7,7 +7,6 @@
 (deflisten brightness "scripts/brightness")
 (defpoll ip_address :interval "20s" "ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | tail -n1")
 
-(defpoll time_tmp :interval "20s" `date +" %a %d %b %R"`)
 (defpoll power_mode :interval "1s" `system76-power profile | grep 'Power Profile' | awk -F': ' '{print $2}' | xargs`)
 (defpoll volume_icon :interval "2s" "scripts/audio --get-volicon")
 (defpoll microphone_icon :interval "2s" "scripts/audio --get-micicon")
@@ -20,13 +19,13 @@
 (defpoll active_window_title :interval "0.1s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
 (defvar selected_window_title "")
 
-(defvar when_active_window_title_is_shown true)
-(defvar when_time_is_shown true)
+(defvar show_active_or_selected_window_title 0)
+(defvar show_time_or_date 0)
+(defvar time_transition "slideup")
 (defvar show_battery false)
 (defvar show_disk_space false)
 (defvar show_ram false)
 (defvar show_settings false)
-(defvar settings_wheel "⚙")
 
 (defvar cycle_kbd_brightness "asusctl -n")
 (defvar switch_layout "scripts/layout --switch-layout")
@@ -39,9 +38,9 @@
 
 (defwidget wifi []
   (revealer :reveal {!show_settings}
-  (box :space-evenly false :class "margin-separate" :visible {!show_settings}
-    (button :onclick "${toggle_window} --networkManager"
-      (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18")))))
+    (box :visible {!show_settings}
+      (button :onclick "${toggle_window} --networkManager"
+        (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "20")))))
 
 (defwidget popup_network_manager []
   (box
@@ -74,24 +73,18 @@
             (label :text "${workspace.id}")))))))
 
 (defwidget display_window_titles []
-  (box :class "current-window-title"
-    (revealer :reveal {!when_active_window_title_is_shown} :visible {!when_active_window_title_is_shown} :valign "fill" :transition "slideleft"
-      (label 
-        :unindent true
-        :limit-width 1
-        :markup "<span font-size=\"x-small\" font-weight=\"light\">${selected_window_title}</span>"))
-
-    (revealer :reveal when_active_window_title_is_shown :visible when_active_window_title_is_shown :valign "fill" :transition "slideleft"
-      (label 
-        :unindent true
-        :limit-width 1
-        :markup "<span font-size=\"x-small\" font-weight=\"light\">${active_window_title == '' ? "Desktop" : active_window_title}</span>"))))
+  (stack
+    :class "current-window-title"
+    :selected show_active_or_selected_window_title
+    :transition "Slideleft"
+    (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${selected_window_title == '' ? "Empty" : selected_window_title}</span>")
+    (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${active_window_title == '' ? "Desktop" : active_window_title}</span>")))
 
 (defwidget workspace_trackers []
   (box :space-evenly false
     (eventbox
-      :onhover "${RUN_EWW} update when_active_window_title_is_shown=false"
-      :onhoverlost "${RUN_EWW} update when_active_window_title_is_shown=true"
+      :onhover "${RUN_EWW} update show_active_or_selected_window_title=0"
+      :onhoverlost "${RUN_EWW} update show_active_or_selected_window_title=1"
       (workspaces))
       (display_window_titles)))
 
@@ -99,34 +92,17 @@
 ;; TIME WIDGET
 (defwidget time []
   (eventbox
-    :onhover "${RUN_EWW} update when_time_is_shown=false"
-    :onhoverlost "${RUN_EWW} update when_time_is_shown=true"
+    :onhover "${RUN_EWW} update show_time_or_date=1 time_transition='slidedown'"
+    :onhoverlost "${RUN_EWW} update show_time_or_date=0 time_transition='slideup'"
     (button
       :onclick "${toggle_window} --calendar"
-      (box
-        :class "time"
-        :space-evenly "false"
-        :orientation "v"
-        :valign "center"
-        :halign "fill"
-        (revealer
-          :reveal when_time_is_shown
-          :transition "slidedown"
-          :duration "350ms"
-          :valign "fill"
-          (label
-            :valign "center"
-            :class "time"
-            :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>"))
-        (revealer
-          :reveal {!when_time_is_shown}
-          :transition "slideup"
-          :duration "350ms"
-          :valign "fill"
-          (label
-            :valign "fill"
-            :class "time"
-            :markup "<span font-weight=\"light\" font-size=\"small\">${date}</span>" ))))))
+        (stack
+          :selected show_time_or_date
+          :transition time_transition
+          :same-size true
+          :class "time"
+          (label :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>")
+          (label :markup "<span font-weight=\"light\" font-size=\"small\">${date}</span>" )))))
 
 ;; POPUP CALENDAR
 (defwidget popup_calendar []
@@ -209,8 +185,8 @@
 
 (defwidget settings []
   (eventbox
-    :onhover "${RUN_EWW} update show_settings=true settings_wheel=' '"
-    :onhoverlost "${RUN_EWW} update show_settings=false settings_wheel='⚙'"
+    :onhover "${RUN_EWW} update show_settings=true"
+    :onhoverlost "${RUN_EWW} update show_settings=false"
     (box
       :space-evenly "false"
       :orientation "h"
@@ -218,7 +194,7 @@
       (label 
         :valign "center"
         :class "settings-wheel"
-        :text "${settings_wheel}")
+        :text "⚙")
       (revealer
         :reveal show_settings
         :transition "slideright"
@@ -236,10 +212,10 @@
         (box :orientation "h" :class "tracker-circular-progress-box ${additional_classes}" :space-evenly false :valign "center"
           (label :text displayed_label)
           (box :space-evenly false :orientation "v" :valign "center"
-            (revealer :reveal {!reveal_when_is_true} :transition "slidedown"
+            (revealer :reveal {!reveal_when_is_true} :transition "slidedown" :duration "200ms"
               (box :class "tracker-circular-progress-box"
                 (circular-progress :start-at 50 :value value :thickness 3.3)))
-            (revealer :reveal reveal_when_is_true :transition "slideup"
+            (revealer :reveal reveal_when_is_true :transition "slideup" :duration "200ms"
               (box :class "tracker-circular-progress-box"
                 (label :class "" :text revealed_value_on_hover))))))))
 

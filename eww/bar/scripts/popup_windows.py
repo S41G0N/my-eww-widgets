@@ -29,9 +29,8 @@ NETWORK_WIDGET_WIDTH = int(CONFIG.get("NETWORK_WIDGET_WIDTH_PX", WIDGET_DEFAULT_
 BAR_WIDTH_PERCENTAGE = int(CONFIG.get("BAR_WIDTH", 100))
 
 #Return scaled resolution based on current screen information
-def get_scaled_resolution() -> List[int]:
-    monitor_info = "hyprctl monitors -j | jq '.[0] | {width, height, scale}'"
-    process = subprocess.Popen(monitor_info, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+def get_scaled_resolution(executed_comamand: str) -> List[int]:
+    process = subprocess.Popen(executed_comamand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout, stderr = process.communicate()
     output = stdout.strip()
     results = json.loads(output)
@@ -42,16 +41,17 @@ def get_scaled_resolution() -> List[int]:
 
 
 def get_battery_coordinates() -> int:
-    monitor_resolution = get_scaled_resolution()
+    monitor_resolution = get_scaled_resolution("hyprctl monitors -j | jq '.[0] | {width, height, scale}'")
     x_coordinate = int(monitor_resolution[0] - (monitor_resolution[0] * (100 - BAR_WIDTH_PERCENTAGE) / 200) - BATTERY_WIDGET_WIDTH)
     return x_coordinate
 
 
 def get_main_bar_width() -> int:
-    monitor_resolution = get_scaled_resolution()
+    monitor_resolution = get_scaled_resolution("hyprctl monitors -j | jq '.[0] | {width, height, scale}'")
     bar_width_percentage = int(CONFIG.get("BAR_WIDTH", 50)) / 100
     bar_width = int(monitor_resolution[0] * bar_width_percentage)
     return bar_width
+
 
 open_widgets = {
     "mainbar": f"{RUN_EWW} open mainbar --screen 0 --arg width={get_main_bar_width()}",
