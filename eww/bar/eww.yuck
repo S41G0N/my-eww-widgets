@@ -38,9 +38,10 @@
 ;; ################################################ NETWORKING ##########################################
 
 (defwidget wifi []
+  (revealer :reveal {!show_settings}
   (box :space-evenly false :class "margin-separate" :visible {!show_settings}
     (button :onclick "${toggle_window} --networkManager"
-      (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18"))))
+      (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "18")))))
 
 (defwidget popup_network_manager []
   (box
@@ -84,7 +85,7 @@
       (label 
         :unindent true
         :limit-width 1
-        :markup "<span font-size=\"x-small\" font-weight=\"light\">${active_window_title}</span>"))))
+        :markup "<span font-size=\"x-small\" font-weight=\"light\">${active_window_title == '' ? "Desktop" : active_window_title}</span>"))))
 
 (defwidget workspace_trackers []
   (box :space-evenly false
@@ -163,8 +164,8 @@
 ;; ################################################ ADJUSTABLE SETTINGS (HIDDEN BEHIND GEAR WHEEL) ##########################################
 ;; PROGRESS BAR TEMPLATE
 (defwidget progress_scale [label orientation onchange ?flipped ?value ?action ?min ?right_click]
-  (box :orientation "h" :class "trackerMetric " :space-evenly false
-    (button :class "adjustable-settings" :onrightclick right_click :onclick action label)
+  (box :orientation "h" :class "trackerMetric" :space-evenly false
+    (button :onrightclick right_click :onclick action label)
     (scale 
       :orientation orientation
       :flipped flipped
@@ -231,20 +232,19 @@
   (eventbox
     :onhover "${RUN_EWW} update ${switch_property}=true"
     :onhoverlost "${RUN_EWW} update ${switch_property}=false"
-      (revealer :reveal show_widget :transition "slideright"
-        (button :onclick "${toggle_window} ${launch_onclick}"
-          (box :space-evenly false
-            (box :orientation "h" :class "circularMetric ${additional_classes}"
-              (revealer 
-                :reveal {!reveal_when_is_true}
-                :duration "200ms"
-                (label :text displayed_label))
-              (circular-progress :start-at 50 :value value :thickness 3.2))
-            (revealer :reveal reveal_when_is_true :valign "fill" :transition "slideright" :duration "200ms"
-              (label :text revealed_value_on_hover)))))))
+      (button :onclick "${toggle_window} ${launch_onclick}"
+        (box :orientation "h" :class "tracker-circular-progress-box ${additional_classes}" :space-evenly false :valign "center"
+          (label :text displayed_label)
+          (box :space-evenly false :orientation "v" :valign "center"
+            (revealer :reveal {!reveal_when_is_true} :transition "slidedown"
+              (box :class "tracker-circular-progress-box"
+                (circular-progress :start-at 50 :value value :thickness 3.3)))
+            (revealer :reveal reveal_when_is_true :transition "slideup"
+              (box :class "tracker-circular-progress-box"
+                (label :class "" :text revealed_value_on_hover))))))))
 
 (defwidget trackers []
-  (box :class "circularMetric" :visible {!show_settings} :space-evenly false
+  (box :class "unset-default-scss" :visible {!show_settings} :space-evenly false
   ;; MEMORY TRACKER
     (tracker
       :switch_property "show_ram"
