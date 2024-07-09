@@ -74,7 +74,6 @@
 
 /* TRACKERS SETTINGS */
 .adjustable-settings,
-.circularMetric button,
 .margin-separate button {
   all: unset;
 }
@@ -88,8 +87,17 @@
 .trackerMetric scale trough {
   background-color: $dark-gray;
   border-radius: 50px;
-  min-height: 4px;
+  min-height: 1rem;
+  min-width: 0.5rem;
+}
+
+.horizontal-progress-scale scale trough{
+  min-height: 5px;
   min-width: 40px;
+}
+
+.circularMetric button {
+  all:unset;
 }
 
 .circularMetric{
@@ -103,7 +111,7 @@
 }
 
 .circularMetric circular-progress{
-  margin:1px;
+  margin:0px;
   color: $cherry-red;
   background-color: $dark-gray;
 }
@@ -145,7 +153,7 @@
 .time {
   font-family: "JetBrains Mono Light";
   color: $off-white;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }
 
 .popup-window {
@@ -179,3 +187,5 @@
   min-width: 8rem;
   margin-left: 2rem;
 }
+
+.network-manager{}
