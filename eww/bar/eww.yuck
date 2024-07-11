@@ -1,108 +1,98 @@
 ;; ######################################### VARIABLES ##############################################
-(deflisten get_layout "scripts/layout --get-layout")
-(deflisten workspaces_list :initial "[]" "scripts/get_workspaces")
-(deflisten current_workspace :initial "[]" "scripts/current_workspace")
-(deflisten volume_vol "scripts/audio --get-vol")
-(deflisten microphone_vol "scripts/audio --get-mic")
-(deflisten brightness "scripts/brightness")
-(defpoll ip_address :interval "20s" "ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | tail -n1")
+(deflisten GET_LAYOUT "scripts/layout --get-layout")
+(deflisten WORKSPACES_LIST :initial "[]" "scripts/get_workspaces")
+(deflisten CURRENT_WORKSPACE :initial "[]" "scripts/current_workspace")
+(deflisten GET_VOLUME "scripts/audio --get-vol")
+(deflisten GET_MICROPHONE_SENSITIVITY "scripts/audio --get-mic")
+(deflisten SCREEN_BRIGHTNESS "scripts/brightness")
 
-(defpoll power_mode :interval "1s" `system76-power profile | grep 'Power Profile' | awk -F': ' '{print $2}' | xargs`)
-(defpoll volume_icon :interval "2s" "scripts/audio --get-volicon")
-(defpoll microphone_icon :interval "2s" "scripts/audio --get-micicon")
-(defpoll charge_limit :interval "1s" "cat /sys/class/power_supply/BAT0/charge_control_end_threshold")
-(defpoll hour :interval "1s" "scripts/time_info --hour")
-(defpoll minutes :interval "1s" "scripts/time_info --minutes")
-(defpoll type :interval "1s" "scripts/time_info --type")
-(defpoll date :interval "1s" "scripts/time_info --date")
-(defpoll wifi_status :interval "1s" "scripts/network")
-(defpoll active_window_title :interval "0.1s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
-(defvar selected_window_title "")
+(defpoll CURRENT_POWER_PROFILE :interval "1s" `system76-power profile | grep 'Power Profile' | awk -F': ' '{print $2}' | xargs`)
+(defpoll BATTERY_CHARGE_LIMIT :interval "1s" "cat /sys/class/power_supply/BAT0/charge_control_end_threshold")
+(defpoll HOUR :interval "1s" "scripts/time_info --hour")
+(defpoll MINUTES :interval "1s" "scripts/time_info --minutes")
+(defpoll PM_OR_AM :interval "1s" "scripts/time_info --type")
+(defpoll DATE :interval "1s" "scripts/time_info --date")
+(defpoll IP_ADDRESS :interval "20s" "ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | tail -n1")
+(defpoll CONNECTED_NETWORK :interval "1s" "scripts/network")
+(defpoll VOLUME_ICON :interval "2s" "scripts/audio --get-volicon")
+(defpoll MICROPHONE_ICON :interval "2s" "scripts/audio --get-micicon")
+(defpoll CURRENT_WINDOW_TITLE :interval "0.1s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
 
-(defvar show_active_or_selected_window_title 0)
-(defvar show_time_or_date 0)
-(defvar time_transition "slideup")
-(defvar show_battery false)
-(defvar show_disk_space false)
-(defvar show_ram false)
-(defvar show_settings false)
-
-(defvar cycle_kbd_brightness "asusctl -n")
-(defvar switch_layout "scripts/layout --switch-layout")
-(defvar toggle_window "python scripts/popup_windows.py")
-(defvar power_profile "system76-power profile")
+(defvar SELECTED_WINDOW_TITLE "")
+(defvar SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE 0)
+(defvar SWAP_TIME_DATE 0)
+(defvar TIME_ANIMATION "slideup")
+(defvar SHOW_BATTERY_STATUS false)
+(defvar SHOW_DISK_SPACE false)
+(defvar SHOW_RAM_USAGE false)
+(defvar SHOW_HIDDEN_SETTINGS false)
+(defvar CHANGE_KBD_BRIGHTNESS "asusctl -n")
+(defvar SWITCH_KBD_LAYOUT "scripts/layout --switch-layout")
+(defvar TOGGLE_WINDOW "python scripts/popup_windows.py")
+(defvar SET_POWER_PROFILE "system76-power profile")
 (defvar RUN_EWW "eww -c ~/.config/eww/bar")
-(defvar launch "scripts/launch_app")
+(defvar LAUNCH_APP "scripts/launch_app")
+(defvar NETWORK_SETTINGS_APP "iwgtk")
 
 ;; ################################################ NETWORKING ##########################################
 
 (defwidget wifi []
-  (revealer :reveal {!show_settings}
-    (box :visible {!show_settings}
-      (button :onclick "${toggle_window} --networkManager"
-        (image :path "icons/wifi_${wifi_status == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "20")))))
+  (revealer :reveal {!SHOW_HIDDEN_SETTINGS}
+    (box :visible {!SHOW_HIDDEN_SETTINGS}
+      (button :onclick "${TOGGLE_WINDOW} --networkManager"
+        (image :path "icons/wifi_${CONNECTED_NETWORK == 'DISCONNECTED' ? "red" : "green"}.png" :image-width "20")))))
 
 (defwidget popup_network_manager []
   (box
     :class "popup-window network-manager"
     :orientation "v"
     :space-evenly false
-    (label :text "Current Network:")
-    (label :text wifi_status)
-    (label :text "IP Address:")
-    (label :text ip_address)
+    (label :text CONNECTED_NETWORK)
+    (label :text IP_ADDRESS)
     (button
-      :onclick "${launch} iwgtk"
+      :onclick "${TOGGLE_WINDOW} --networkManager && ${LAUNCH_APP} ${NETWORK_SETTINGS_APP}"
       (label :text "Network Settings"))))
 
 ;; ################################################ WORKSPACE MANAGEMENT ##########################################
-;; WORKSPACE TRACKER
-(defwidget workspaces []
-  (box :class "workspaces" 
-    (label :text "${current_workspace}" :visible false)
-    (for workspace in workspaces_list
-      (eventbox
-        :onhover "${RUN_EWW} update selected_window_title='${replace(workspace.windows[1],'&','&amp;')}'"
-        (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
-          (box :class "default-workspace 
-            ${workspace.id == current_workspace[0] ? "firstScreen" : ""} 
-            ${workspace.id == current_workspace[1] ? "secondScreen" : ""} 
-            ${workspace.id == current_workspace[2] ? "thirdScreen" : ""} 
-            ${workspace.id == current_workspace[3] ? "fourthScreen" : ""} 
-            ${workspace.windows[0] > 0 ? "occupiedWindow" : ""}"
-            (label :text "${workspace.id}")))))))
-
-(defwidget display_window_titles []
-  (stack
-    :class "current-window-title"
-    :selected show_active_or_selected_window_title
-    :transition "Slideleft"
-    (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${selected_window_title == '' ? "Empty" : selected_window_title}</span>")
-    (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${active_window_title == '' ? "Desktop" : active_window_title}</span>")))
-
-(defwidget workspace_trackers []
+(defwidget workspace_tracker []
   (box :space-evenly false
     (eventbox
-      :onhover "${RUN_EWW} update show_active_or_selected_window_title=0"
-      :onhoverlost "${RUN_EWW} update show_active_or_selected_window_title=1"
-      (workspaces))
-      (display_window_titles)))
+      :onhover "${RUN_EWW} update SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE=0"
+      :onhoverlost "${RUN_EWW} update SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE=1"
+      (box :class "workspaces" 
+        (label :text "${CURRENT_WORKSPACE}" :visible false)
+        (for workspace in WORKSPACES_LIST
+          (eventbox
+            :onhover "${RUN_EWW} update SELECTED_WINDOW_TITLE='${replace(workspace.windows[1],'&','&amp;')}'"
+            (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
+              (box :class "default-workspace 
+                ${workspace.id == CURRENT_WORKSPACE[0] ? "firstScreen" : ""} 
+                ${workspace.id == CURRENT_WORKSPACE[1] ? "secondScreen" : ""} 
+                ${workspace.id == CURRENT_WORKSPACE[2] ? "thirdScreen" : ""} 
+                ${workspace.id == CURRENT_WORKSPACE[3] ? "fourthScreen" : ""} 
+                ${workspace.windows[0] > 0 ? "occupiedWindow" : ""}"
+                (label :text "${workspace.id}")))))))
+        (stack
+          :class "current-window-title"
+          :selected SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE
+          :transition "Slideleft"
+          (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${SELECTED_WINDOW_TITLE == '' ? "Empty" : SELECTED_WINDOW_TITLE}</span>")
+          (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${CURRENT_WINDOW_TITLE == '' ? "Desktop" : CURRENT_WINDOW_TITLE}</span>"))))
 
 ;; ################################################ TIME DISPLAY ##########################################
 ;; TIME WIDGET
 (defwidget time []
   (eventbox
-    :onhover "${RUN_EWW} update show_time_or_date=1 time_transition='slidedown'"
-    :onhoverlost "${RUN_EWW} update show_time_or_date=0 time_transition='slideup'"
-    (button
-      :onclick "${toggle_window} --calendar"
-        (stack
-          :selected show_time_or_date
-          :transition time_transition
-          :same-size true
-          :class "time"
-          (label :markup "<span font-weight=\"heavy\">${hour}</span><span font-weight=\"heavy\">:${minutes}</span><span font-size=\"xx-small\">${type}</span>")
-          (label :markup "<span font-weight=\"light\" font-size=\"small\">${date}</span>" )))))
+    :onhover "${RUN_EWW} update SWAP_TIME_DATE=1 TIME_ANIMATION='slidedown'"
+    :onhoverlost "${RUN_EWW} update SWAP_TIME_DATE=0 TIME_ANIMATION='slideup'"
+    (button :onclick "${TOGGLE_WINDOW} --calendar"
+      (stack
+        :selected SWAP_TIME_DATE
+        :transition TIME_ANIMATION
+        :same-size true
+        :class "time"
+        (label :markup "<span font-weight=\"heavy\">${HOUR}</span><span font-weight=\"heavy\">:${MINUTES}</span><span font-size=\"xx-small\">${PM_OR_AM}</span>")
+        (label :markup "<span font-weight=\"light\" font-size=\"small\">${DATE}</span>" )))))
 
 ;; POPUP CALENDAR
 (defwidget popup_calendar []
@@ -118,24 +108,22 @@
 
 ;; ################################################ POWER MANAGEMENT ##########################################
 (defwidget popup_power_manager []
-  (box :class "popup-window"
-    :space-evenly false
-    :orientation "v"
-    (button :onclick "${power_profile} battery && ${toggle_window} --powerManager" (label :text "Battery"))
-    (button :onclick "${power_profile} balanced && ${toggle_window} --powerManager"(label :text "Balanced"))
-    (button :onclick "${power_profile} performance && ${toggle_window} --powerManager"(label :text "Performance"))
+  (box :class "popup-window" :space-evenly false :orientation "v"
+    (button :onclick "${SET_POWER_PROFILE} battery && ${TOGGLE_WINDOW} --powerManager" (label :text "Battery"))
+    (button :onclick "${SET_POWER_PROFILE} balanced && ${TOGGLE_WINDOW} --powerManager"(label :text "Balanced"))
+    (button :onclick "${SET_POWER_PROFILE} performance && ${TOGGLE_WINDOW} --powerManager"(label :text "Performance"))
     (label :text "" :class "white-border")
     (label :text "Charge Limit:")
     (box :space-evenly false :class "horizontal-progress-scale"
     (progress_scale
       :orientation "h"
-      :label "🔋${charge_limit}%"
-      :value charge_limit
+      :label "🔋${BATTERY_CHARGE_LIMIT}%"
+      :value BATTERY_CHARGE_LIMIT
       :onchange "asusctl -c {}"
       :min 20 )
       (box :space-evenly false
-      (button :onclick "asusctl -c ${charge_limit + 1}" (label :text "▲"))
-      (button :onclick "asusctl -c ${charge_limit - 1}" (label :text "▼"))))))
+      (button :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT + 1}" (label :text "▲"))
+      (button :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT - 1}" (label :text "▼"))))))
 
 ;; ################################################ ADJUSTABLE SETTINGS (HIDDEN BEHIND GEAR WHEEL) ##########################################
 ;; PROGRESS BAR TEMPLATE
@@ -154,39 +142,43 @@
 ;; ADJUSTABLE SETTINGS
 (defwidget adjustables []
   (box :space-evenly false
+    ;; MICROPHONE SETTINGS
     (progress_scale
       :orientation "v"
       :flipped true
-      :label microphone_icon
-      :value microphone_vol
+      :label MICROPHONE_ICON
+      :value GET_MICROPHONE_SENSITIVITY
       :onchange "scripts/audio --set-mic {}"
       :action "scripts/audio --toggle-mic"
-      :right_click "${launch} helvum")
-
+      :right_click "${LAUNCH_APP} helvum")
+    ;; VOLUME SETTINGS
     (progress_scale
       :orientation "v"
       :flipped true
-      :label volume_icon
-      :value volume_vol
+      :label VOLUME_ICON
+      :value GET_VOLUME
       :onchange "scripts/audio --set-vol {}"
       :action "scripts/audio --toggle-vol"
-      :right_click "${launch} helvum")
-
+      :right_click "${LAUNCH_APP} helvum")
+    ;; SCREEN BRIGHTNESS SETTINGS
     (progress_scale
       :orientation "v"
       :flipped true
       :label "🔆"
-      :value brightness
+      :value SCREEN_BRIGHTNESS
       :onchange "scripts/brightness --set-bright {}"
       :action "asusctl -n")
 
-    (button :onclick switch_layout :onrightclick cycle_kbd_brightness (label :text "⌨"))
-    (label :markup "<span font-size=\"small\" font-weight=\"light\">${get_layout}</span>")))
+    ;; KEYBOARD SETTINGS
+    (button :onclick SWITCH_KBD_LAYOUT :onrightclick CHANGE_KBD_BRIGHTNESS 
+      (box :orientation "h" :space-evenly false
+        (label :text "⌨" :class "kbd-settings")
+        (label :markup "<span font-size=\"small\" font-weight=\"light\">${GET_LAYOUT}</span>")))))
 
 (defwidget settings []
   (eventbox
-    :onhover "${RUN_EWW} update show_settings=true"
-    :onhoverlost "${RUN_EWW} update show_settings=false"
+    :onhover "${RUN_EWW} update SHOW_HIDDEN_SETTINGS=true"
+    :onhoverlost "${RUN_EWW} update SHOW_HIDDEN_SETTINGS=false"
     (box
       :space-evenly "false"
       :orientation "h"
@@ -196,7 +188,7 @@
         :class "settings-wheel"
         :text "⚙")
       (revealer
-        :reveal show_settings
+        :reveal SHOW_HIDDEN_SETTINGS
         :transition "slideright"
         :duration "450ms"
         :valign "fill"
@@ -204,11 +196,11 @@
 
 ;; ################################################ NON-ADJUSTABLE MONITORED METRICS (RAM, MEMORY, BATTERY) ##########################################
 
-(defwidget tracker [switch_property launch_onclick value show_widget reveal_when_is_true revealed_value_on_hover ?displayed_label ?additional_classes]
+(defwidget tracker [switch_property LAUNCH_APP_onclick value show_widget reveal_when_is_true revealed_value_on_hover ?displayed_label ?additional_classes]
   (eventbox
     :onhover "${RUN_EWW} update ${switch_property}=true"
     :onhoverlost "${RUN_EWW} update ${switch_property}=false"
-      (button :onclick "${toggle_window} ${launch_onclick}"
+      (button :onclick "${TOGGLE_WINDOW} ${LAUNCH_APP_onclick}"
         (box :orientation "h" :class "tracker-circular-progress-box ${additional_classes}" :space-evenly false :valign "center"
           (label :text displayed_label)
           (box :space-evenly false :orientation "v" :valign "center"
@@ -220,38 +212,38 @@
                 (label :class "" :text revealed_value_on_hover))))))))
 
 (defwidget trackers []
-  (box :class "unset-default-scss" :visible {!show_settings} :space-evenly false
+  (box :class "unset-default-scss" :visible {!SHOW_HIDDEN_SETTINGS} :space-evenly false
   ;; MEMORY TRACKER
     (tracker
-      :switch_property "show_ram"
+      :switch_property "SHOW_RAM_USAGE"
       :show_widget true
-      :launch_onclick ""
+      :LAUNCH_APP_onclick ""
       :displayed_label "💾" 
       :additional_classes "${EWW_RAM.used_mem_perc > 80 ? "high" : EWW_RAM.used_mem_perc > 50 ? "medium" : "low"}"
       :value {EWW_RAM.used_mem_perc}
-      :reveal_when_is_true show_ram
+      :reveal_when_is_true SHOW_RAM_USAGE
       :revealed_value_on_hover "${round(EWW_RAM.used_mem_perc, 0)}%")
 
   ;; RAM TRACKER
     (tracker
-      :switch_property "show_disk_space"
+      :switch_property "SHOW_DISK_SPACE"
       :show_widget true
-      :launch_onclick ""
+      :LAUNCH_APP_onclick ""
       :displayed_label "💻" 
       :additional_classes "${EWW_DISK["/"].used_perc > 80 ? "high" : EWW_DISK["/"].used_perc > 50 ? "medium" : "low"}" 
       :value {EWW_DISK["/"].used_perc}
-      :reveal_when_is_true show_disk_space
+      :reveal_when_is_true SHOW_DISK_SPACE
       :revealed_value_on_hover "${round(EWW_DISK["/"].used_perc, 0)}%")
 
   ;; BATTERY TRACKER
     (tracker
-      :switch_property "show_battery"
+      :switch_property "SHOW_BATTERY_STATUS"
       :show_widget {EWW_BATTERY.BAT0.capacity != '' ? true : false}
-      :launch_onclick "--powerManager"
+      :LAUNCH_APP_onclick "--powerManager"
       :displayed_label "🔋" 
-      :additional_classes "${power_mode} ${EWW_BATTERY.BAT0.status}"  
+      :additional_classes "${CURRENT_POWER_PROFILE} ${EWW_BATTERY.BAT0.status}"  
       :value {EWW_BATTERY.BAT0.capacity}
-      :reveal_when_is_true show_battery
+      :reveal_when_is_true SHOW_BATTERY_STATUS
       :revealed_value_on_hover "${EWW_BATTERY.BAT0.capacity}%")))
 
 
@@ -259,7 +251,7 @@
 ;; FINAL BAR CONTAINER
 (defwidget full_bar []
   (centerbox :class "main-container" :orientation "h" :halign true :hexpand true
-    (box :halign "start" (workspace_trackers))
+    (box :halign "start" (workspace_tracker))
     (box :halign "center" (time))
     (box :halign "end" :space-evenly false
       (wifi)
@@ -270,7 +262,7 @@
 ;;  MAIN BAR WINDOW
 (defwindow mainbar [width]
   :monitor 0
-  :windowtype "dock"
+  :windowPM_OR_AM "dock"
   :geometry (geometry :anchor "top center" :hexpand true :halign true :width {width})
   :exclusive true
   :stacking "fg"
@@ -282,7 +274,7 @@
   :monitor 0
   :geometry (geometry :anchor "top center" :y 10 :width 300 :height 100 )
   :stacking "fg"
-  :windowtype "dock"
+  :windowPM_OR_AM "dock"
   :wm-ignore "false"
   (popup_calendar))
 
@@ -291,7 +283,7 @@
   :monitor 0
   :geometry (geometry :x {x_cor} :y 10 :width {width} :height 100)
   :stacking "fg"
-  :windowtype "normal"
+  :windowPM_OR_AM "normal"
   :wm-ignore "false"
   (popup_power_manager))
 
@@ -300,6 +292,6 @@
   :monitor 0
   :geometry (geometry :x {x_cor} :y 10 :width {width} :height 100)
   :stacking "fg"
-  :windowtype "normal"
+  :windowPM_OR_AM "normal"
   :wm-ignore "false"
   (popup_network_manager))
