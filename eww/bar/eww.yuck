@@ -14,8 +14,8 @@
 (defpoll DATE :interval "1s" "scripts/time_info --date")
 (defpoll IP_ADDRESS :interval "20s" "ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | tail -n1")
 (defpoll CONNECTED_NETWORK :interval "1s" "scripts/network")
-(defpoll VOLUME_ICON :interval "2s" "scripts/audio --get-volicon")
-(defpoll MICROPHONE_ICON :interval "2s" "scripts/audio --get-micicon")
+(defpoll VOLUME_ICON :interval "0.3s" "scripts/audio --get-volicon")
+(defpoll MICROPHONE_ICON :interval "0.3s" "scripts/audio --get-micicon")
 (defpoll CURRENT_WINDOW_TITLE :interval "0.1s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
 
 (defvar SELECTED_WINDOW_TITLE "")
@@ -127,8 +127,8 @@
 
 ;; ################################################ ADJUSTABLE SETTINGS (HIDDEN BEHIND GEAR WHEEL) ##########################################
 ;; PROGRESS BAR TEMPLATE
-(defwidget progress_scale [label orientation onchange ?flipped ?value ?action ?min ?right_click]
-  (box :orientation "h" :class "trackerMetric" :space-evenly false
+(defwidget progress_scale [label orientation onchange value ?flipped ?action ?min ?right_click]
+  (box :orientation "h" :class "progress-scale" :space-evenly false
     (button :onrightclick right_click :onclick action label)
     (scale 
       :orientation orientation
@@ -196,11 +196,11 @@
 
 ;; ################################################ NON-ADJUSTABLE MONITORED METRICS (RAM, MEMORY, BATTERY) ##########################################
 
-(defwidget tracker [switch_property LAUNCH_APP_onclick value show_widget reveal_when_is_true revealed_value_on_hover ?displayed_label ?additional_classes]
+(defwidget tracker [switch_property launch_on_click value show_widget reveal_when_is_true revealed_value_on_hover ?displayed_label ?additional_classes]
   (eventbox
     :onhover "${RUN_EWW} update ${switch_property}=true"
     :onhoverlost "${RUN_EWW} update ${switch_property}=false"
-      (button :onclick "${TOGGLE_WINDOW} ${LAUNCH_APP_onclick}"
+      (button :onclick "${TOGGLE_WINDOW} ${launch_on_click}"
         (box :orientation "h" :class "tracker-circular-progress-box ${additional_classes}" :space-evenly false :valign "center"
           (label :text displayed_label)
           (box :space-evenly false :orientation "v" :valign "center"
@@ -212,12 +212,12 @@
                 (label :class "" :text revealed_value_on_hover))))))))
 
 (defwidget trackers []
-  (box :class "unset-default-scss" :visible {!SHOW_HIDDEN_SETTINGS} :space-evenly false
+  (box :class "unset-default-scss trackers" :visible {!SHOW_HIDDEN_SETTINGS} :space-evenly false
   ;; MEMORY TRACKER
     (tracker
       :switch_property "SHOW_RAM_USAGE"
       :show_widget true
-      :LAUNCH_APP_onclick ""
+      :launch_on_click ""
       :displayed_label "💾" 
       :additional_classes "${EWW_RAM.used_mem_perc > 80 ? "high" : EWW_RAM.used_mem_perc > 50 ? "medium" : "low"}"
       :value {EWW_RAM.used_mem_perc}
@@ -228,7 +228,7 @@
     (tracker
       :switch_property "SHOW_DISK_SPACE"
       :show_widget true
-      :LAUNCH_APP_onclick ""
+      :launch_on_click ""
       :displayed_label "💻" 
       :additional_classes "${EWW_DISK["/"].used_perc > 80 ? "high" : EWW_DISK["/"].used_perc > 50 ? "medium" : "low"}" 
       :value {EWW_DISK["/"].used_perc}
@@ -239,7 +239,7 @@
     (tracker
       :switch_property "SHOW_BATTERY_STATUS"
       :show_widget {EWW_BATTERY.BAT0.capacity != '' ? true : false}
-      :LAUNCH_APP_onclick "--powerManager"
+      :launch_on_click "--powerManager"
       :displayed_label "🔋" 
       :additional_classes "${CURRENT_POWER_PROFILE} ${EWW_BATTERY.BAT0.status}"  
       :value {EWW_BATTERY.BAT0.capacity}

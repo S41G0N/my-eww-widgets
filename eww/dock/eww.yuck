@@ -1,0 +1,26 @@
+;; Dock variables
+(defvar dock_apps '[
+  { "name": "Terminal", "icon": "terminal", "exec": "kitty" },
+  { "name": "Browser", "icon": "firefox", "exec": "firefox" },
+  { "name": "File Manager", "icon": "folder", "exec": "thunar" },
+  { "name": "Editor", "icon": "code", "exec": "code" }
+]')
+
+(defwidget dock []
+  (box :class "dock" :orientation "h" :space-evenly false
+    (for app in dock_apps
+      (button :class "dock-icon" 
+              :tooltip "${app.name}"
+              :onclick "${app.exec}"
+        (image :path "icons/${app.icon}.png" :image-width 48 :image-height 48)))))
+
+(defwindow dock
+  :monitor 0
+  :geometry (geometry :x "0%"
+                      :y "0px"
+                      :width "50%"
+                      :height "60px"
+                      :anchor "bottom center")
+  :stacking "fg"
+  :exclusive true
+  (dock))

@@ -24,3 +24,5 @@ It also tracks many more things such as disk space, memory usage and battery.
 
 ![Main Bar](img/bar.gif)
 
+### DOCK
+A custom dock which displays the most commonly used apps, buttons are clickable and will launch the selected applications

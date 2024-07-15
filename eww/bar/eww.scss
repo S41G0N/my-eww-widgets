@@ -72,21 +72,27 @@
   color: $cherry-red;
 }
 
-.trackerMetric scale trough highlight {
+.progress-scale scale trough highlight {
   background-color: $cherry-red;
   color: black;
   border-radius: 10px;
 }
 
-.trackerMetric scale trough {
+.progress-scale scale trough {
   background-color: $dark-gray;
-  border-radius: 50px;
   min-height: 1rem;
   min-width: 0.5rem;
 }
 
-.trackerMetric button {
-  padding-right: 0px;
+.progress-scale scale {
+  padding:0.3em;
+  padding-top:0.35em;
+  padding-bottom:0.35em;
+}
+
+.progress-scale button {
+  all:unset;
+  margin-left: 0.4em;
 }
 
 .horizontal-progress-scale scale trough{
@@ -153,6 +159,7 @@
 }
 
 .settings-wheel {
+  padding-left:0.4em;
   font-size:1.3em;
 }
 

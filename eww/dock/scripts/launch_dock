@@ -1,0 +1,4 @@
+#!/bin/sh
+eww="eww -c $HOME/.config/eww/dock"
+
+$eww close dock || $eww open dock;
