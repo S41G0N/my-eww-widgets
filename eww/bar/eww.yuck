@@ -262,11 +262,10 @@
 ;;  MAIN BAR WINDOW
 (defwindow mainbar [width]
   :monitor 0
-  :windowPM_OR_AM "dock"
-  :geometry (geometry :anchor "top center" :hexpand true :halign true :width {width})
+  :windowtype "dock"
+  :geometry (geometry :anchor "top center" :hexpand true :halign "center" :width {width})
   :exclusive true
   :stacking "fg"
-  :wm-ignore false
   (full_bar))
 
 ;; CALENDAR WINDOW
@@ -274,8 +273,7 @@
   :monitor 0
   :geometry (geometry :anchor "top center" :y 10 :width 300 :height 100 )
   :stacking "fg"
-  :windowPM_OR_AM "dock"
-  :wm-ignore "false"
+  :windowtype "normal"
   (popup_calendar))
 
 ;; POWER MANAGER WINDOW
@@ -283,8 +281,7 @@
   :monitor 0
   :geometry (geometry :x {x_cor} :y 10 :width {width} :height 100)
   :stacking "fg"
-  :windowPM_OR_AM "normal"
-  :wm-ignore "false"
+  :windowtype "normal"
   (popup_power_manager))
 
 ;; NETWORK MANAGER WINDOW
@@ -292,6 +289,5 @@
   :monitor 0
   :geometry (geometry :x {x_cor} :y 10 :width {width} :height 100)
   :stacking "fg"
-  :windowPM_OR_AM "normal"
-  :wm-ignore "false"
+  :windowtype "normal"
   (popup_network_manager))
