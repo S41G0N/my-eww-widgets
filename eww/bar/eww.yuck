@@ -34,7 +34,7 @@
 (defvar LAUNCH_APP "scripts/launch_app")
 (defvar NETWORK_SETTINGS_APP "iwgtk")
 
-;; ################################################ NETWORKING ##########################################
+;; ################################################ SHOW NETWORKS ##########################################
 
 (defwidget wifi []
   (revealer :reveal {!SHOW_HIDDEN_SETTINGS}
@@ -52,6 +52,14 @@
     (button
       :onclick "${TOGGLE_WINDOW} --networkManager && ${LAUNCH_APP} ${NETWORK_SETTINGS_APP}"
       (label :text "Network Settings"))))
+
+;; ################################################ MONITOR MANAGEMENT ##########################################
+(defwidget popup_monitor_manager []
+  (box
+    :class "popup-window"
+    :orientation "v"
+    :space-evenly false
+    (label :text "MONITOR SETTINGS")))
 
 ;; ################################################ WORKSPACE MANAGEMENT ##########################################
 (defwidget workspace_tracker []
@@ -183,16 +191,19 @@
       :space-evenly "false"
       :orientation "h"
       :halign "fill"
+    (button 
+      :class "unset-default-scss"
+      :onclick "${TOGGLE_WINDOW} --monitorManager"
       (label 
         :valign "center"
         :class "settings-wheel"
-        :text "⚙")
-      (revealer
-        :reveal SHOW_HIDDEN_SETTINGS
-        :transition "slideright"
-        :duration "450ms"
-        :valign "fill"
-        (adjustables)))))
+        :text "⚙"))
+    (revealer
+      :reveal SHOW_HIDDEN_SETTINGS
+      :transition "slideright"
+      :duration "450ms"
+      :valign "fill"
+      (adjustables)))))
 
 ;; ################################################ NON-ADJUSTABLE MONITORED METRICS (RAM, MEMORY, BATTERY) ##########################################
 
@@ -291,3 +302,11 @@
   :stacking "fg"
   :windowtype "normal"
   (popup_network_manager))
+
+;; NETWORK MANAGER WINDOW
+(defwindow monitorManager [x_cor ?width]
+  :monitor 0
+  :geometry (geometry :x {x_cor} :y 10 :width {width} :height 100)
+  :stacking "fg"
+  :windowtype "normal"
+  (popup_monitor_manager))

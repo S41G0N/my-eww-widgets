@@ -38,6 +38,7 @@ open_widgets = {
     "calendar": f"{RUN_EWW} open calendar",
     "powerManager": f"{RUN_EWW} open powerManager --arg x_cor={get_battery_coordinates()} --arg width={BATTERY_WIDGET_WIDTH}",
     "networkManager": f"{RUN_EWW} open networkManager --arg x_cor={get_battery_coordinates()} --arg width={NETWORK_WIDGET_WIDTH}",
+    "monitorManager": f"{RUN_EWW} open monitorManager --arg x_cor={get_battery_coordinates()} --arg width={NETWORK_WIDGET_WIDTH}",
 }
 
 def toggle_window(window: str) -> None:
@@ -48,7 +49,7 @@ def toggle_window(window: str) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Open a specific bar using a use flag")
-    window_list = ["mainbar", "calendar", "powerManager", "networkManager"]
+    window_list = ["mainbar", "calendar", "powerManager", "networkManager", "monitorManager"]
     for widget in window_list:
         parser.add_argument(f"--{widget}", action="store_true", help=f"toggle {widget}")
     args = parser.parse_args()
