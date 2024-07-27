@@ -1,5 +1,8 @@
+/* GLOBAL SETTINGS */
+@import "colors.scss";
+
 .dock {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: $main-container-blue;
   border-radius: 10px;
   padding: 5px;
 }
