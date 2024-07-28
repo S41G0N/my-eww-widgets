@@ -17,6 +17,8 @@
 (defpoll VOLUME_ICON :interval "0.3s" "scripts/audio --get-volicon")
 (defpoll MICROPHONE_ICON :interval "0.3s" "scripts/audio --get-micicon")
 (defpoll CURRENT_WINDOW_TITLE :interval "0.1s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
+(defpoll CURRENT_POWER_CONSUMPTION :interval "0.5s" "lua scripts/power_consumption.lua")
+(defpoll VPN_STATUS :interval "0.5s" "lua scripts/check_vpn_status.lua")
 
 (defvar SELECTED_WINDOW_TITLE "")
 (defvar SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE 0)
@@ -42,7 +44,7 @@
       (button 
         :onclick "${RUN_EWW} close networkManager || ${RUN_EWW} open networkManager"
         (image 
-          :path "icons/wifi_${CONNECTED_NETWORK == 'DISCONNECTED' ? "red" : "green"}.png" 
+          :path "icons/${VPN_STATUS == "No VPN" ? CONNECTED_NETWORK == 'DISCONNECTED' ? "wifi_red" : "wifi_green" : "shield"}.png" 
           :image-width "20")))))
 
 ;; ################################################ WORKSPACE MANAGEMENT ##########################################
@@ -288,39 +290,66 @@
 ;; POWER MANAGER WINDOW
 (defwindow powerManager
   :monitor 0
-  :geometry (geometry :anchor "top center" :y 10 :width 250 :height 100)
+  :geometry (geometry :anchor "top center" :y 10 :width 200 :height 100)
   :stacking "fg"
   :windowtype "normal"
   (box :class "popup-window" :space-evenly false :orientation "v"
-      (button 
-        :onclick "${SET_POWER_PROFILE} battery && ${RUN_EWW} close powerManager" 
-        (label :text "Battery"))
-      (button 
-        :onclick "${SET_POWER_PROFILE} balanced && ${RUN_EWW} close powerManager"
-        (label :text "Balanced"))
-      (button 
-        :onclick "${SET_POWER_PROFILE} performance && ${RUN_EWW} close powerManager"
-        (label :text "Performance"))
+    (button 
+      :onclick "${RUN_EWW} close powerManager && ${SET_POWER_PROFILE} battery" 
       (label 
-        :class "white-border")
+        :text "Battery"))
+
+    (button 
+      :onclick "${RUN_EWW} close powerManager && ${SET_POWER_PROFILE} balanced"
+      (label 
+        :text "Balanced"))
+
+    (button 
+      :onclick "${RUN_EWW} close powerManager && ${SET_POWER_PROFILE} performance"
+      (label 
+        :text "Performance"))
+
+    (label 
+      :class "white-border")
+
+    (box
+      :orientation "v"
       (label 
         :text "Charge Limit:")
       (box 
         :space-evenly false 
         :class "horizontal-progress-scale"
-      (progress_scale
-        :orientation "h"
-        :label "🔋${BATTERY_CHARGE_LIMIT}%"
-        :value BATTERY_CHARGE_LIMIT
-        :onchange "asusctl -c {}"
-        :min 20 )
+        (progress_scale
+          :orientation "h"
+          :label "🔋${BATTERY_CHARGE_LIMIT}%"
+          :value BATTERY_CHARGE_LIMIT
+          :onchange "asusctl -c {}"
+          :min 20 )
+
         (box :space-evenly false
-        (button 
-          :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT + 1}" 
-            (label :text "▲"))
-        (button 
-          :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT - 1}" 
-            (label :text "▼"))))))
+          (button 
+            :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT + 1}" 
+              (label :text "▲"))
+          (button 
+            :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT - 1}" 
+              (label :text "▼")))))
+    (label 
+      :class "white-border")
+
+    (box
+      :orientation "v"
+      :valign "center"
+      :class "unset-default-scss"
+      (label :text "Power Rate")
+      (graph
+        :class "power-consumption-graph"
+        :thickness 3
+        :value CURRENT_POWER_CONSUMPTION
+        :time-range "20s"
+        :min 0
+        :max 50
+        :dynamic "true"
+        :line-style "round"))))
 
 ;;POPUP CALENDAR WINDOW
 (defwindow calendar
@@ -361,15 +390,33 @@
 (defwindow additionalSettingsManager
   :monitor 0
   :stacking "fg"
-  :geometry (geometry :anchor "top center" :y 10 :width 300 :height 100 )
+  :geometry (geometry :anchor "top center" :y 10 :width 250 :height 200 )
   :windowtype "normal"
   (box
     :class "popup-window"
     :orientation "v"
     :space-evenly false
-    (label 
-      :text "Misc Settings")
-    (button 
-      :onclick "${LAUNCH_APP} hyprlock"
+    (button
+      :onclick "${RUN_EWW} close additionalSettingsManager"
       (label 
-        :text "🔒"))))
+        :text "Misc Settings"))
+      (box
+        :orientation "h"
+        (button
+          :onclick ""
+          (label
+            :text "button 1"))
+        (button
+          :onclick ""
+          (label
+            :text "button 2")))
+      (box
+        :orientation "h"
+        (button
+          :onclick ""
+          (label
+            :text "button 3"))
+        (button
+          :onclick "${RUN_EWW} close additionalSettingsManager && ${LAUNCH_APP} ~/.config/hypr/scripts/lock_screen.sh"
+          (label
+            :text "🔒")))))

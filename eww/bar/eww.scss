@@ -42,7 +42,7 @@
 }
 
 .workspaces button:hover {
-  background-color: $dark-salmon;
+  background-color: $catpuccin-red;
 }
 
 .default-workspace {
@@ -52,29 +52,29 @@
 
 /* SETS COLOR OF WORKSPACE BUTTONS */
 .occupiedWindow {
-  background-color: $cherry-red;
-  color: $off-white;
+  background-color: $catpuccin-red;
+  color: black;
 }
 
 .firstScreen{
   background-color: pink;
-  color: $black;
+  color: $main-container-blue;
 }
 .secondScreen{
   background-color: #fa8072;
-  color: $black;
+  color: $main-container-blue;
 }
 .thirdScreen{
   background-color: #dddddd;
-  color: $black;
+  color: $main-container-blue;
 }
 .fourthScreen{
   background-color: #ffa07a;
-  color: $cherry-red;
+  color: $main-container-blue;
 }
 
 .progress-scale scale trough highlight {
-  background-color: $cherry-red;
+  background-color: $catpuccin-red;
   color: black;
   border-radius: 10px;
 }
@@ -188,6 +188,12 @@
 
 .kbd-settings {
   margin-right:0.5em;
+}
+
+.power-consumption-graph{
+  color: $catpuccin-red;
+
+
 }
 
 .unset-default-scss button{
