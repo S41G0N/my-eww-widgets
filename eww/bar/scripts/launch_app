@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env lua
 
-## Get Volume
-launch_app() {
-    echo "LAUNCHING $1"
-    "$1"
-}
+-- App Launcher
+local function launch_app(app)
+    print("LAUNCHING " .. app)
+    os.execute(app)
+end
 
-if [ -n "$1" ]; then
-	launch_app "$1"
-fi
+if arg[1] then
+    launch_app(arg[1])
+end

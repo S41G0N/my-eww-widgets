@@ -48,7 +48,7 @@ end
 
 local function get_main_bar_width()
 	local x_res = get_scaled_resolution("hyprctl monitors -j | jq '.[0] | {width, height, scale}'")[1]
-	return math.floor(x_res * (tonumber(CONFIG_FILE["BAR_WIDTH"]) or 50) / 100)
+	return math.floor(x_res * (tonumber(CONFIG_FILE["BAR_WIDTH_IN_PERCENTAGES"]) or 50) / 100)
 end
 
 local function close_window()

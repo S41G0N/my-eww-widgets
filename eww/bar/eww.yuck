@@ -17,8 +17,9 @@
 (defpoll VOLUME_ICON :interval "0.3s" "scripts/audio --get-volicon")
 (defpoll MICROPHONE_ICON :interval "0.3s" "scripts/audio --get-micicon")
 (defpoll CURRENT_WINDOW_TITLE :interval "0.1s" "hyprctl activeworkspace -j | jq -r '.lastwindowtitle' | awk -F ' - ' '{print $NF}'")
-(defpoll CURRENT_POWER_CONSUMPTION :interval "0.5s" "lua scripts/power_consumption.lua")
-(defpoll VPN_STATUS :interval "0.5s" "lua scripts/check_vpn_status.lua")
+(defpoll CURRENT_POWER_CONSUMPTION :interval "0.5s" "scripts/get_power_consumption")
+(defpoll VPN_STATUS :interval "1s" "scripts/get_vpn_status")
+(defpoll MONITOR_NETWORK_TRAFFIC :interval "0.2s" "scripts/monitor_network_traffic")
 
 (defvar SELECTED_WINDOW_TITLE "")
 (defvar SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE 0)
@@ -39,10 +40,8 @@
 
 (defwidget wifi_icon []
   (revealer :reveal {!SHOW_HIDDEN_SETTINGS}
-    (box 
-      :visible {!SHOW_HIDDEN_SETTINGS}
-      (button 
-        :onclick "${RUN_EWW} close networkManager || ${RUN_EWW} open networkManager"
+    (box :visible {!SHOW_HIDDEN_SETTINGS}
+      (button :onclick "${RUN_EWW} close networkManager || ${RUN_EWW} open networkManager"
         (image 
           :path "icons/${VPN_STATUS == "No VPN" ? CONNECTED_NETWORK == 'DISCONNECTED' ? "wifi_red" : "wifi_green" : "shield"}.png" 
           :image-width "20")))))
@@ -53,16 +52,13 @@
     (eventbox
       :onhover "${RUN_EWW} update SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE=0"
       :onhoverlost "${RUN_EWW} update SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE=1"
-      (box 
-        :class "workspaces" 
+      (box :class "workspaces" 
         (label 
           :text "${CURRENT_WORKSPACE}" 
           :visible false)
           (for workspace in WORKSPACES_LIST
-            (eventbox
-              :onhover "${RUN_EWW} update SELECTED_WINDOW_TITLE='${replace(workspace.windows[1],'&','&amp;')}'"
-              (button 
-                :onclick "hyprctl dispatch workspace ${workspace.id}" 
+            (eventbox :onhover "${RUN_EWW} update SELECTED_WINDOW_TITLE='${replace(workspace.windows[1],'&','&amp;')}'"
+              (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
                 (box 
                   :class "default-workspace 
                     ${workspace.id == CURRENT_WORKSPACE[0] ? "firstScreen" : ""} 
@@ -70,16 +66,14 @@
                     ${workspace.id == CURRENT_WORKSPACE[2] ? "thirdScreen" : ""} 
                     ${workspace.id == CURRENT_WORKSPACE[3] ? "fourthScreen" : ""} 
                     ${workspace.windows[0] > 0 ? "occupiedWindow" : ""}"
-                  (label 
-                    :text "${workspace.id}")))))))
+                  (label :text "${workspace.id}")))))))
+
         (stack
           :class "current-window-title"
           :selected SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE
           :transition "Slideleft"
-          (label 
-            :markup "<span font-size=\"x-small\" font-weight=\"light\">${SELECTED_WINDOW_TITLE == '' ? "Empty" : SELECTED_WINDOW_TITLE}</span>")
-          (label 
-            :markup "<span font-size=\"x-small\" font-weight=\"light\">${CURRENT_WINDOW_TITLE == '' ? "Desktop" : CURRENT_WINDOW_TITLE}</span>"))))
+          (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${SELECTED_WINDOW_TITLE == '' ? "Empty" : SELECTED_WINDOW_TITLE}</span>")
+          (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${CURRENT_WINDOW_TITLE == '' ? "Desktop" : CURRENT_WINDOW_TITLE}</span>"))))
 
 ;; ################################################ TIME DISPLAY ##########################################
 ;; TIME WIDGET
@@ -87,17 +81,14 @@
   (eventbox
     :onhover "${RUN_EWW} update SWAP_TIME_DATE=1 TIME_ANIMATION='slidedown'"
     :onhoverlost "${RUN_EWW} update SWAP_TIME_DATE=0 TIME_ANIMATION='slideup'"
-    (button 
-      :onclick "${RUN_EWW} close calendar || ${RUN_EWW} open calendar"
+    (button :onclick "${RUN_EWW} close calendar || ${RUN_EWW} open calendar"
       (stack
         :selected SWAP_TIME_DATE
         :transition TIME_ANIMATION
         :same-size true
         :class "time"
-        (label 
-          :markup "<span font-weight=\"heavy\">${HOUR}</span><span font-weight=\"heavy\">:${MINUTES}</span><span font-size=\"xx-small\">${PM_OR_AM}</span>")
-        (label 
-          :markup "<span font-weight=\"light\" font-size=\"small\">${DATE}</span>" )))))
+        (label :markup "<span font-weight=\"heavy\">${HOUR}</span><span font-weight=\"heavy\">:${MINUTES}</span><span font-size=\"xx-small\">${PM_OR_AM}</span>")
+        (label :markup "<span font-weight=\"light\" font-size=\"small\">${DATE}</span>" )))))
 
 ;; ################################################ ADJUSTABLE SETTINGS (HIDDEN BEHIND GEAR WHEEL) ##########################################
 ;; PROGRESS BAR TEMPLATE
@@ -155,8 +146,7 @@
         (label 
           :text "⌨" 
           :class "kbd-settings")
-          (label 
-            :markup "<span font-size=\"small\" font-weight=\"light\">${GET_LAYOUT}</span>")))))
+          (label :markup "<span font-size=\"small\" font-weight=\"light\">${GET_LAYOUT}</span>")))))
 
 (defwidget settings []
   (eventbox
@@ -214,10 +204,8 @@
               :reveal reveal_when_is_true 
               :transition "slideup" 
               :duration "200ms"
-              (box 
-                :class "tracker-circular-progress-box"
-                (label 
-                  :text revealed_value_on_hover))))))))
+              (box :class "tracker-circular-progress-box"
+                (label :text revealed_value_on_hover))))))))
 
 (defwidget trackers []
   (box :class "unset-default-scss trackers" :visible {!SHOW_HIDDEN_SETTINGS} :space-evenly false
@@ -264,15 +252,13 @@
     :halign true 
     :hexpand true
 
-    (box 
-      :halign "start" 
+    (box :halign "start" 
       (workspace_tracker))
-    (box 
-      :halign "center" 
+
+    (box :halign "center" 
       (time))
-    (box 
-      :halign "end" 
-      :space-evenly false
+
+    (box :halign "end" :space-evenly false
       (wifi_icon)
       (trackers)
       (settings))))
@@ -370,7 +356,7 @@
 ;; NETWORK MANAGER WINDOW
 (defwindow networkManager
   :monitor 0
-  :geometry (geometry :anchor "top center" :y 10 :width 400 :height 100)
+  :geometry (geometry :anchor "top center" :y 10 :width 200 :height 250)
   :stacking "fg"
   :windowtype "normal"
   (box
@@ -379,12 +365,45 @@
     :space-evenly false
     (label 
       :text CONNECTED_NETWORK)
+
     (label
       :text IP_ADDRESS)
-    (button
-      :onclick "${RUN_EWW} close networkManager && ${LAUNCH_APP} ${NETWORK_SETTINGS_APP}"
-      (label 
-        :text "Network Settings"))))
+
+    (label 
+      :class "white-border")
+
+    (button :onclick "${RUN_EWW} close networkManager && ${LAUNCH_APP} ${NETWORK_SETTINGS_APP}"
+      (label :text "Network Settings"))
+
+    (label :class "white-border")
+
+    (box
+      :orientation "v"
+      :valign "center"
+      :class "unset-default-scss"
+      (label :text "Download:")
+      (label :text "${MONITOR_NETWORK_TRAFFIC.download} bytes/second")
+      (graph
+        :class "power-consumption-graph"
+        :thickness 3
+        :value {MONITOR_NETWORK_TRAFFIC.download}
+        :time-range "20s"
+        :min 0
+        :max 50
+        :dynamic "true"
+        :line-style "round")
+
+      (label :text "Upload:")
+      (label :text "${MONITOR_NETWORK_TRAFFIC.upload} bytes/second")
+      (graph
+        :class "power-consumption-graph"
+        :thickness 3
+        :value {MONITOR_NETWORK_TRAFFIC.upload}
+        :time-range "20s"
+        :min 0
+        :max 50
+        :dynamic "true"
+        :line-style "round"))))
 
 ;; NETWORK MANAGER WINDOW
 (defwindow additionalSettingsManager
@@ -396,27 +415,21 @@
     :class "popup-window"
     :orientation "v"
     :space-evenly false
-    (button
-      :onclick "${RUN_EWW} close additionalSettingsManager"
-      (label 
-        :text "Misc Settings"))
-      (box
-        :orientation "h"
-        (button
-          :onclick ""
-          (label
-            :text "button 1"))
-        (button
-          :onclick ""
-          (label
-            :text "button 2")))
-      (box
-        :orientation "h"
-        (button
-          :onclick ""
-          (label
-            :text "button 3"))
-        (button
-          :onclick "${RUN_EWW} close additionalSettingsManager && ${LAUNCH_APP} ~/.config/hypr/scripts/lock_screen.sh"
-          (label
-            :text "🔒")))))
+    (button :onclick "${RUN_EWW} close additionalSettingsManager"
+      (label :text "Misc Settings"))
+
+      (box :orientation "h"
+
+        (button :onclick ""
+          (label :text "button 1"))
+
+        (button :onclick ""
+          (label :text "button 2")))
+
+      (box :orientation "h"
+
+        (button :onclick ""
+          (label :text "button 3"))
+
+        (button :onclick "${RUN_EWW} close additionalSettingsManager && ${LAUNCH_APP} ~/.config/hypr/scripts/lock_screen.sh"
+          (label :text "🔒")))))
