@@ -35,6 +35,7 @@
 (defvar RUN_EWW "eww -c ~/.config/eww/bar")
 (defvar LAUNCH_APP "scripts/launch_app")
 (defvar NETWORK_SETTINGS_APP "iwgtk")
+(defvar SWAP_GRAPH_POWERSETTINGS 0)
 
 ;; ################################################ SHOW NETWORKS ##########################################
 
@@ -75,21 +76,6 @@
           (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${SELECTED_WINDOW_TITLE == '' ? "Empty" : SELECTED_WINDOW_TITLE}</span>")
           (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${CURRENT_WINDOW_TITLE == '' ? "Desktop" : CURRENT_WINDOW_TITLE}</span>"))))
 
-;; ################################################ TIME DISPLAY ##########################################
-;; TIME WIDGET
-(defwidget time []
-  (eventbox
-    :onhover "${RUN_EWW} update SWAP_TIME_DATE=1 TIME_ANIMATION='slidedown'"
-    :onhoverlost "${RUN_EWW} update SWAP_TIME_DATE=0 TIME_ANIMATION='slideup'"
-    (button :onclick "${RUN_EWW} close calendar || ${RUN_EWW} open calendar"
-      (stack
-        :selected SWAP_TIME_DATE
-        :transition TIME_ANIMATION
-        :same-size true
-        :class "time"
-        (label :markup "<span font-weight=\"heavy\">${HOUR}</span><span font-weight=\"heavy\">:${MINUTES}</span><span font-size=\"xx-small\">${PM_OR_AM}</span>")
-        (label :markup "<span font-weight=\"light\" font-size=\"small\">${DATE}</span>" )))))
-
 ;; ################################################ ADJUSTABLE SETTINGS (HIDDEN BEHIND GEAR WHEEL) ##########################################
 ;; PROGRESS BAR TEMPLATE
 (defwidget progress_scale [label orientation onchange value ?flipped ?action ?min ?right_click]
@@ -106,35 +92,25 @@
         :value value
         :onchange onchange)))
 
+(defvar LIST_OF_ADJUSTABLE_SETTINGS '[
+  {"name": "MICROPHONE", "orientation": "v", "flipped": "true", "label": "MICROPHONE_ICON", "value": "GET_MICROPHONE_SENSITIVITY", "onchange": "scripts/audio --set-mic {}", "action": "scripts/audio --toggle-mic", "right_click": "helvum"},
+  {"name": "VOLUME", "orientation": "v", "flipped": "true", "label": "VOLUME_ICON", "value": "GET_VOLUME", "onchange": "scripts/audio --set-vol {}", "action": "scripts/audio --toggle-vol", "right_click": "helvum"},
+  {"name": "SCREEN BRIGHTNESS", "orientation": "v", "flipped": "true", "label": "🔆", "value": "SCREEN_BRIGHTNESS", "onchange": "scripts/brightness --set-bright {}", "action": "asusctl -n"}
+]')
+
 ;; ADJUSTABLE SETTINGS
 (defwidget adjustables []
   (box :space-evenly false
-    ;; MICROPHONE SETTINGS
-    (progress_scale
-      :orientation "v"
-      :flipped true
-      :label MICROPHONE_ICON
-      :value GET_MICROPHONE_SENSITIVITY
-      :onchange "scripts/audio --set-mic {}"
-      :action "scripts/audio --toggle-mic"
-      :right_click "${LAUNCH_APP} helvum")
-    ;; VOLUME SETTINGS
-    (progress_scale
-      :orientation "v"
-      :flipped true
-      :label VOLUME_ICON
-      :value GET_VOLUME
-      :onchange "scripts/audio --set-vol {}"
-      :action "scripts/audio --toggle-vol"
-      :right_click "${LAUNCH_APP} helvum")
-    ;; SCREEN BRIGHTNESS SETTINGS
-    (progress_scale
-      :orientation "v"
-      :flipped true
-      :label "🔆"
-      :value SCREEN_BRIGHTNESS
-      :onchange "scripts/brightness --set-bright {}"
-      :action "asusctl -n")
+    (for adjustable in LIST_OF_ADJUSTABLE_SETTINGS
+      ;; ADJUSTABLES (MICROPHONE SETTINGS, VOLUME SETTINGS, BRIGHTNESS SETTINGS)
+      (progress_scale
+        :orientation {adjustable.orientation}
+        :flipped {adjustable.flipped}
+        :label {adjustable.label == "MICROPHONE_ICON" ? MICROPHONE_ICON : adjustable.label == "VOLUME_ICON" ? VOLUME_ICON : "🔆"}
+        :value {adjustable.value == "GET_MICROPHONE_SENSITIVITY" ? GET_MICROPHONE_SENSITIVITY : adjustable.value == "GET_VOLUME" ? GET_VOLUME : SCREEN_BRIGHTNESS}
+        :onchange {adjustable.onchange}
+        :action {adjustable.action}
+        :right_click "${LAUNCH_APP} ${adjustable.right_click}"))
 
     ;; KEYBOARD SETTINGS
     (button 
@@ -209,6 +185,7 @@
 
 (defwidget trackers []
   (box :class "unset-default-scss trackers" :visible {!SHOW_HIDDEN_SETTINGS} :space-evenly false
+
   ;; MEMORY TRACKER
     (tracker
       :switch_property "SHOW_RAM_USAGE"
@@ -244,24 +221,6 @@
 
 
 ;; ################################################ CONSISTS OF ALL THINGS ABOVE -> CALLED BY defwindow mainbar ##########################################
-;; FINAL BAR CONTAINER
-(defwidget full_bar []
-  (centerbox 
-    :class "main-container" 
-    :orientation "h"
-    :halign true 
-    :hexpand true
-
-    (box :halign "start" 
-      (workspace_tracker))
-
-    (box :halign "center" 
-      (time))
-
-    (box :halign "end" :space-evenly false
-      (wifi_icon)
-      (trackers)
-      (settings))))
 
 ;; ########################################## WINDOWS #################################################
 ;;  MAIN BAR WINDOW
@@ -271,7 +230,32 @@
   :geometry (geometry :anchor "top center" :hexpand true :halign "center" :width {width})
   :exclusive true
   :stacking "fg"
-  (full_bar))
+  (centerbox 
+      :class "main-container" 
+      :orientation "h"
+      :halign true 
+      :hexpand true
+
+      (box :halign "start" 
+        (workspace_tracker))
+
+      (box :halign "center" 
+        (eventbox
+          :onhover "${RUN_EWW} update SWAP_TIME_DATE=1 TIME_ANIMATION='slidedown'"
+          :onhoverlost "${RUN_EWW} update SWAP_TIME_DATE=0 TIME_ANIMATION='slideup'"
+          (button :onclick "${RUN_EWW} close calendar || ${RUN_EWW} open calendar"
+            (stack
+              :selected SWAP_TIME_DATE
+              :transition TIME_ANIMATION
+              :same-size true
+              :class "time"
+              (label :markup "<span font-weight=\"heavy\">${HOUR}</span><span font-weight=\"heavy\">:${MINUTES}</span><span font-size=\"xx-small\">${PM_OR_AM}</span>")
+              (label :markup "<span font-weight=\"light\" font-size=\"small\">${DATE}</span>" )))))
+
+      (box :halign "end" :space-evenly false
+        (wifi_icon)
+        (trackers)
+        (settings))))
 
 ;; POWER MANAGER WINDOW
 (defwindow powerManager
@@ -284,26 +268,21 @@
       :onclick "${RUN_EWW} close powerManager && ${SET_POWER_PROFILE} battery" 
       (label 
         :text "Battery"))
-
     (button 
       :onclick "${RUN_EWW} close powerManager && ${SET_POWER_PROFILE} balanced"
       (label 
         :text "Balanced"))
-
     (button 
       :onclick "${RUN_EWW} close powerManager && ${SET_POWER_PROFILE} performance"
       (label 
         :text "Performance"))
 
-    (label 
-      :class "white-border")
+    (label :class "white-border")
 
-    (box
-      :orientation "v"
-      (label 
-        :text "Charge Limit:")
+    (box :orientation "v"
+      (label :text "Charge Limit:")
       (box 
-        :space-evenly false 
+        :space-evenly false
         :class "horizontal-progress-scale"
         (progress_scale
           :orientation "h"
@@ -311,31 +290,44 @@
           :value BATTERY_CHARGE_LIMIT
           :onchange "asusctl -c {}"
           :min 20 )
-
         (box :space-evenly false
-          (button 
-            :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT + 1}" 
+          (button :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT + 1}" 
               (label :text "▲"))
-          (button 
-            :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT - 1}" 
+          (button :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT - 1}" 
               (label :text "▼")))))
-    (label 
-      :class "white-border")
 
-    (box
-      :orientation "v"
-      :valign "center"
-      :class "unset-default-scss"
-      (label :text "Power Rate")
-      (graph
-        :class "power-consumption-graph"
-        :thickness 3
-        :value CURRENT_POWER_CONSUMPTION
-        :time-range "20s"
-        :min 0
-        :max 50
-        :dynamic "true"
-        :line-style "round"))))
+    (label :class "white-border")
+
+    (eventbox
+      :onhover "${RUN_EWW} update SWAP_GRAPH_POWERSETTINGS=1"
+      :onhoverlost "${RUN_EWW} update SWAP_GRAPH_POWERSETTINGS=0"
+      (box
+        :orientation "v"
+        :valign "center"
+        :class "unset-default-scss"
+        (stack
+          :same-size true
+          :transition "slideup"
+          :selected SWAP_GRAPH_POWERSETTINGS
+          (box
+            :orientation "v"
+            :valign "center"
+            (label :text "${CURRENT_POWER_CONSUMPTION == 0 ? "On AC" : "${CURRENT_POWER_CONSUMPTION}W"}")
+            (graph
+              :class "power-consumption-graph"
+              :thickness 3
+              :value CURRENT_POWER_CONSUMPTION
+              :time-range "20s"
+              :min 0
+              :max 50
+              :dynamic "true"
+              :line-style "round"))
+          (button
+            :onclick "${LAUNCH_APP} rog-control-center"
+            (label :text "POWER SETTINGS"))
+
+
+              )))))
 
 ;;POPUP CALENDAR WINDOW
 (defwindow calendar
