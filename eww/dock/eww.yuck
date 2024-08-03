@@ -18,7 +18,8 @@
           :onclick "${LAUNCH_APP} ${app.exec}"
           (image 
             :path "${ICONS}/${app.icon}.svg"
-            :image-width 40)))))
+            :image-width 40)))
+            (button :onclick "scripts/toggle_dock")))
 
 (defwindow dock [height]
   :monitor 0
