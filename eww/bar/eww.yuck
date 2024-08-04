@@ -36,10 +36,11 @@
 (defvar LAUNCH_APP "scripts/launch_app")
 (defvar NETWORK_SETTINGS_APP "iwgtk")
 (defvar SWAP_GRAPH_POWERSETTINGS 0)
+(defvar SETTINGS_BUTTON "⚙")
 
 
 ;; ################################################ ADJUSTABLE SETTINGS (HIDDEN BEHIND GEAR WHEEL) ##########################################
-;; PROGRESS BAR TEMPLATE
+;; PROGRESS BAR TEMPLATE 🔒
 (defwidget progress_scale [label orientation onchange value ?flipped ?action ?min ?right_click]
   (box :orientation "h" :class "progress-scale" :space-evenly false
     (button :onrightclick right_click :onclick action label)
@@ -60,10 +61,10 @@
 
 ;; ADJUSTABLE SETTINGS
 (defwidget hidden_adjustable_settings []
-  (eventbox :onhover "${RUN_EWW} update SHOW_HIDDEN_SETTINGS=true" :onhoverlost "${RUN_EWW} update SHOW_HIDDEN_SETTINGS=false"
+  (eventbox :onhover "${RUN_EWW} update SHOW_HIDDEN_SETTINGS=true SETTINGS_BUTTON='🔒'" :onhoverlost "${RUN_EWW} update SHOW_HIDDEN_SETTINGS=false SETTINGS_BUTTON='⚙'"
     (box :space-evenly "false" :orientation "h" :halign "fill"
-      (button :class "unset-default-scss" :onclick "${RUN_EWW} close additionalSettingsManager || ${RUN_EWW} open additionalSettingsManager"
-        (label :valign "center" :class "settings-wheel" :text "⚙"))
+      (button :class "unset-default-scss" :onclick "${LAUNCH_APP} hyprlock"
+        (label :valign "center" :class "settings-wheel" :text SETTINGS_BUTTON))
 
       (revealer :reveal SHOW_HIDDEN_SETTINGS :transition "slideright" :duration "450ms" :valign "fill"
         (box :space-evenly false
@@ -90,7 +91,15 @@
     :onhover "${RUN_EWW} update ${switch_property}=true"
     :onhoverlost "${RUN_EWW} update ${switch_property}=false"
       (button :onclick "${RUN_EWW} close ${launch_on_click} || ${RUN_EWW} open ${launch_on_click}"
-        (box :orientation "h" :class "tracker-circular-progress-box ${additional_classes > 80 ? "high" : additional_classes > 50 ? "medium" : "low"}" :space-evenly false :valign "center"
+        (box
+          :orientation "h" 
+          :space-evenly false
+          :valign "center"
+          :class "tracker-circular-progress-box 
+          ${additional_classes == "BATTERY" ? "${CURRENT_POWER_PROFILE} ${EWW_BATTERY.BAT0.status}" : 
+          additional_classes > 80 ? "high" : 
+          additional_classes > 50 ? "medium" : "low"}"
+
           (label :text displayed_label)
           (box :space-evenly false :orientation "v" :valign "center"
             (revealer :reveal {!reveal_when_is_true} :transition "slidedown" :duration "200ms"
@@ -115,7 +124,7 @@
       :show_widget {metric.show == "false" ? false : true}
       :launch_on_click {metric.on_click}
       :displayed_label {metric.label} 
-      :additional_classes {metric.name == "RAM" ? EWW_RAM.used_mem_perc : metric.name == "DISK" ? EWW_DISK["/"].used_perc : EWW_BATTERY.BAT0.status}
+      :additional_classes {metric.name == "RAM" ? EWW_RAM.used_mem_perc : metric.name == "DISK" ? EWW_DISK["/"].used_perc : "BATTERY"}
       :value {metric.name == "RAM" ? EWW_RAM.used_mem_perc : metric.name == "DISK" ? EWW_DISK["/"].used_perc : EWW_BATTERY.BAT0.capacity}
       :reveal_when_is_true {metric.name == "RAM" ? SHOW_RAM_USAGE : metric.name == "DISK" ? SHOW_DISK_SPACE : SHOW_BATTERY_STATUS}
       :revealed_value_on_hover "${metric.name == "RAM" ? round(EWW_RAM.used_mem_perc, 0) : metric.name == "DISK" ? round(EWW_DISK["/"].used_perc, 0) : EWW_BATTERY.BAT0.capacity}%"))))
@@ -195,6 +204,7 @@
           :label "🔋${BATTERY_CHARGE_LIMIT}%"
           :value BATTERY_CHARGE_LIMIT
           :onchange "asusctl -c {}"
+          :flipped false
           :min 20 )
         (box :space-evenly false
           (button :onclick "asusctl -c ${BATTERY_CHARGE_LIMIT + 1}" "▲")
@@ -268,18 +278,3 @@
         :max 50
         :dynamic "true"
         :line-style "round"))))
-
-;; NETWORK MANAGER WINDOW
-(defwindow additionalSettingsManager
-  :monitor 0
-  :stacking "fg"
-  :geometry (geometry :anchor "top center" :y 10 :width 250 :height 200 )
-  :windowtype "normal"
-  (box :class "popup-window" :orientation "v" :space-evenly false
-    (button :onclick "${RUN_EWW} close additionalSettingsManager" "Misc Settings")
-    (box :orientation "h"
-      (button :onclick "" "button 1")
-      (button :onclick "" "button 2"))
-    (box :orientation "h"
-      (button :onclick "" "button 3")
-      (button :onclick "${RUN_EWW} close additionalSettingsManager && ${LAUNCH_APP} ~/.config/hypr/scripts/lock_screen.sh" "🔒"))))
