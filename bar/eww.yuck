@@ -29,14 +29,17 @@
 (defvar SHOW_DISK_SPACE false)
 (defvar SHOW_RAM_USAGE false)
 (defvar SHOW_HIDDEN_SETTINGS false)
-(defvar CHANGE_KBD_BRIGHTNESS "asusctl -n")
-(defvar SWITCH_KBD_LAYOUT "scripts/layout --switch-layout")
-(defvar SET_POWER_PROFILE "system76-power profile")
 (defvar RUN_EWW "eww -c ~/.config/eww/bar")
-(defvar LAUNCH_APP "scripts/launch_app")
-(defvar NETWORK_SETTINGS_APP "iwgtk")
 (defvar SWAP_GRAPH_POWERSETTINGS 0)
 (defvar SETTINGS_BUTTON "⚙")
+(defvar LAUNCH_APP "scripts/launch_app")
+
+;; ################################################ LOADING CONFIG FILES FROM BAR.CONF ##########################################
+(defvar SCREEN_LOCKER "scripts/read_config.sh SCREEN_LOCKER")
+(defvar NETWORK_SETTINGS_APP "scripts/read_config.sh NETWORK_SETTINGS_APP")
+(defvar POWER_PROFILE "scripts/read_config.sh POWER_PROFILE")
+(defvar SWITCH_KBD_LAYOUT "scripts/read_config.sh KEYBOARD_SWITCH_SCRIPT")
+(defvar CHANGE_KBD_BRIGHTNESS "scripts/read_config.sh CHANGE_KEYBOARD_BRIGHTNESS_SCRIPT")
 
 
 ;; ################################################ ADJUSTABLE SETTINGS (HIDDEN BEHIND GEAR WHEEL) ##########################################
@@ -57,7 +60,7 @@
 (defwidget hidden_adjustable_settings []
   (eventbox :onhover "${RUN_EWW} update SHOW_HIDDEN_SETTINGS=true SETTINGS_BUTTON='🔒'" :onhoverlost "${RUN_EWW} update SHOW_HIDDEN_SETTINGS=false SETTINGS_BUTTON='⚙'"
     (box :space-evenly "false" :orientation "h" :halign "fill"
-      (button :class "unset-default-scss" :onclick "${LAUNCH_APP} hyprlock"
+      (button :class "unset-default-scss" :onclick "${LAUNCH_APP} `${SCREEN_LOCKER}`"
         (label :valign "center" :class "settings-wheel" :text SETTINGS_BUTTON))
 
       (revealer :reveal SHOW_HIDDEN_SETTINGS :transition "slideright" :duration "450ms" :valign "fill"
@@ -90,7 +93,7 @@
             :right_click "")
 
           ;; KEYBOARD SETTINGS
-          (button :onclick SWITCH_KBD_LAYOUT :onrightclick CHANGE_KBD_BRIGHTNESS 
+          (button :onclick "`${SWITCH_KBD_LAYOUT}`" :onrightclick "`${CHANGE_KBD_BRIGHTNESS}`" :timeout 500
             (box :orientation "h" :space-evenly false
               (label :text "⌨" :class "kbd-settings")
                 (label :markup "<span font-size=\"small\" font-weight=\"light\">${GET_LAYOUT}</span>"))))))))
@@ -102,11 +105,7 @@
     :onhover "${RUN_EWW} update ${switch_property}=true"
     :onhoverlost "${RUN_EWW} update ${switch_property}=false"
     (button :onclick "${RUN_EWW} close ${launch_on_click} || ${RUN_EWW} open ${launch_on_click}"
-      (box
-        :orientation "h" 
-        :space-evenly false
-        :valign "center"
-        :class "tracker-circular-progress-box 
+      (box :orientation "h" :space-evenly false :valign "center" :class "tracker-circular-progress-box 
         ${additional_classes == "BATTERY" ? "${CURRENT_POWER_PROFILE} ${EWW_BATTERY.BAT0.status}" : 
         additional_classes > 80 ? "high" : 
         additional_classes > 50 ? "medium" : "low"}"
@@ -156,6 +155,42 @@
       :revealed_value_on_hover "${EWW_BATTERY.BAT0.capacity}%")))
 
 ;; ############################################################## WINDOWS ###############################################################################
+
+(defwidget workspaces []
+  (box :space-evenly false
+    (eventbox
+      :onhover "${RUN_EWW} update SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE=0"
+      :onhoverlost "${RUN_EWW} update SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE=1"
+      (box :class "workspaces" 
+        (label :visible false :text "${CURRENT_WORKSPACE}")
+        (for workspace in WORKSPACES_LIST
+          (eventbox :onhover "${RUN_EWW} update SELECTED_WINDOW_TITLE='${replace(workspace.windows[1],'&','&amp;')}'"
+            (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
+              (box :class "default-workspace 
+                ${workspace.id == CURRENT_WORKSPACE[0] ? "firstScreen" : ""} 
+                ${workspace.id == CURRENT_WORKSPACE[1] ? "secondScreen" : ""} 
+                ${workspace.id == CURRENT_WORKSPACE[2] ? "thirdScreen" : ""} 
+                ${workspace.id == CURRENT_WORKSPACE[3] ? "fourthScreen" : ""} 
+                ${workspace.windows[0] > 0 ? "occupiedWindow" : ""}"
+                (label :text "${workspace.id}")))))))
+
+      (stack :selected SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE :class "current-window-title" :transition "Slideleft"
+        (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${SELECTED_WINDOW_TITLE == '' ? "Empty" : SELECTED_WINDOW_TITLE}</span>")
+        (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${CURRENT_WINDOW_TITLE == '' ? "Desktop" : CURRENT_WINDOW_TITLE}</span>"))))
+
+(defwidget time[]
+  (eventbox :onhover "${RUN_EWW} update SWAP_TIME_DATE=1 TIME_ANIMATION='slidedown'" :onhoverlost "${RUN_EWW} update SWAP_TIME_DATE=0 TIME_ANIMATION='slideup'"
+    (button :onclick "${RUN_EWW} close calendar || ${RUN_EWW} open calendar"
+      (stack :selected SWAP_TIME_DATE :transition TIME_ANIMATION :class "time" :same-size true
+        (label :markup "<span font-weight=\"heavy\">${HOUR}</span><span font-weight=\"heavy\">:${MINUTES}</span><span font-size=\"xx-small\">${PM_OR_AM}</span>")
+        (label :markup "<span font-weight=\"light\" font-size=\"small\">${DATE}</span>" )))))
+
+(defwidget wifi_network []
+  (revealer :reveal {!SHOW_HIDDEN_SETTINGS}
+    (box :visible {!SHOW_HIDDEN_SETTINGS}
+      (button :onclick "${RUN_EWW} close networkManager || ${RUN_EWW} open networkManager"
+        (image :path "icons/${VPN_STATUS == "No VPN" ? CONNECTED_NETWORK == 'DISCONNECTED' ? "wifi_red" : "wifi_green" : "shield"}.png" :image-width "20")))))
+
 ;;  MAIN BAR WINDOW
 (defwindow mainbar [width]
   :monitor 0
@@ -164,49 +199,14 @@
   :exclusive true
   :stacking "fg"
   (centerbox :class "main-container" :orientation "h" :halign true :hexpand true
-    ;; WORKSPACES & WINDOW TITLES
     (box :halign "start" 
-      (box :space-evenly false
-        (eventbox
-          :onhover "${RUN_EWW} update SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE=0"
-          :onhoverlost "${RUN_EWW} update SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE=1"
-          (box :class "workspaces" 
-            (label :visible false :text "${CURRENT_WORKSPACE}")
-            (for workspace in WORKSPACES_LIST
-              (eventbox :onhover "${RUN_EWW} update SELECTED_WINDOW_TITLE='${replace(workspace.windows[1],'&','&amp;')}'"
-                (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
-                  (box 
-                    :class "default-workspace 
-                      ${workspace.id == CURRENT_WORKSPACE[0] ? "firstScreen" : ""} 
-                      ${workspace.id == CURRENT_WORKSPACE[1] ? "secondScreen" : ""} 
-                      ${workspace.id == CURRENT_WORKSPACE[2] ? "thirdScreen" : ""} 
-                      ${workspace.id == CURRENT_WORKSPACE[3] ? "fourthScreen" : ""} 
-                      ${workspace.windows[0] > 0 ? "occupiedWindow" : ""}"
-
-                      (label :text "${workspace.id}")))))))
-
-          (stack :selected SWAP_ACTIVE_OR_SELECTED_WINDOW_TITLE :class "current-window-title" :transition "Slideleft"
-            (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${SELECTED_WINDOW_TITLE == '' ? "Empty" : SELECTED_WINDOW_TITLE}</span>")
-            (label :markup "<span font-size=\"x-small\" font-weight=\"light\">${CURRENT_WINDOW_TITLE == '' ? "Desktop" : CURRENT_WINDOW_TITLE}</span>"))))
-
-      ;; TIME
-      (box :halign "center" 
-        (eventbox :onhover "${RUN_EWW} update SWAP_TIME_DATE=1 TIME_ANIMATION='slidedown'" :onhoverlost "${RUN_EWW} update SWAP_TIME_DATE=0 TIME_ANIMATION='slideup'"
-          (button :onclick "${RUN_EWW} close calendar || ${RUN_EWW} open calendar"
-            (stack :selected SWAP_TIME_DATE :transition TIME_ANIMATION :class "time" :same-size true
-              (label :markup "<span font-weight=\"heavy\">${HOUR}</span><span font-weight=\"heavy\">:${MINUTES}</span><span font-size=\"xx-small\">${PM_OR_AM}</span>")
-              (label :markup "<span font-weight=\"light\" font-size=\"small\">${DATE}</span>" )))))
-
-      (box :halign "end" :space-evenly false
-        ;; WIFI ICON
-        (revealer :reveal {!SHOW_HIDDEN_SETTINGS}
-          (box :visible {!SHOW_HIDDEN_SETTINGS}
-            (button :onclick "${RUN_EWW} close networkManager || ${RUN_EWW} open networkManager"
-              (image :path "icons/${VPN_STATUS == "No VPN" ? CONNECTED_NETWORK == 'DISCONNECTED' ? "wifi_red" : "wifi_green" : "shield"}.png" :image-width "20"))))
-        ;; RAM, DISK SPACE, BATTERY
-        (trackers)
-        ;; MIC, VOLUME, BRIGHTNESS, KEYBOARD
-        (hidden_adjustable_settings))))
+      (workspaces));; WORKSPACES & WINDOW TITLES
+    (box :halign "center" 
+      (time)) ;;TIME
+    (box :halign "end" :space-evenly false
+      (wifi_network) ;; NETWORK SETTINGS
+      (trackers) ;; RAM, DISK, BATTERY
+      (hidden_adjustable_settings)))) ;; MIC, VOLUME, KEYBOARD
 
 ;; POWER MANAGER WINDOW
 (defwindow powerManager
@@ -215,9 +215,9 @@
   :stacking "fg"
   :windowtype "normal"
   (box :class "popup-window" :space-evenly false :orientation "v"
-    (button :onclick "${RUN_EWW} close powerManager && ${SET_POWER_PROFILE} battery" "Battery")
-    (button :onclick "${RUN_EWW} close powerManager && ${SET_POWER_PROFILE} balanced" "Balanced")
-    (button :onclick "${RUN_EWW} close powerManager && ${SET_POWER_PROFILE} performance" "Performance")
+    (button :onclick "${RUN_EWW} close powerManager && `${POWER_PROFILE}` battery" "Battery")
+    (button :onclick "${RUN_EWW} close powerManager && `${POWER_PROFILE}` balanced" "Balanced")
+    (button :onclick "${RUN_EWW} close powerManager && `${POWER_PROFILE}` performance" "Performance")
 
     (label :class "white-border")
 
@@ -258,11 +258,7 @@
   :geometry (geometry :anchor "top center" :y 10 :width 300 :height 100 )
   :stacking "fg"
   :windowtype "normal"
-  (box
-    :class "popup-window"
-    :orientation "h"
-    :valign "fill"
-    :halign "fill"
+  (box :class "popup-window" :orientation "h" :valign "fill" :halign "fill"
     (calendar :show-details true :show-heading true :show-day-names true)))
 
 ;; NETWORK MANAGER WINDOW
@@ -275,7 +271,7 @@
     (label :text CONNECTED_NETWORK)
     (label :text IP_ADDRESS)
     (label :class "white-border")
-    (button :onclick "${RUN_EWW} close networkManager && ${LAUNCH_APP} ${NETWORK_SETTINGS_APP}" "Network Settings")
+    (button :onclick "${RUN_EWW} close networkManager && ${LAUNCH_APP} `${NETWORK_SETTINGS_APP}`" "Network Settings")
     (label :class "white-border")
 
     (box :orientation "v" :valign "center" :class "unset-default-scss"

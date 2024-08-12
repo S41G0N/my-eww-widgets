@@ -1,6 +1,7 @@
 # my-eww-widgets
 ## Getting Started
 This is a collection of my custom widgets in [eww](https://github.com/elkowar/eww). Feel free to use them and modify them according to your wishes.
+
 ## Project Prerequisites & Setup
 These are the prerequisites used by the essential scripts, make sure to install them to make the widgets work properly:
 - **Hyprland**: A tiling window manager this widget was designed for
@@ -20,7 +21,7 @@ Ensure you have these tools installed on your system to proceed with the setup a
 ## Installation Instructions
 1. Clone this repository:
    ```sh
-   git clone https://github.com/yourusername/my-eww-widgets.git
+   git clone https://github.com/S41G0N/my-eww-widgets.git
    cd my-eww-widgets
    ```
 2. Install the required dependencies. The exact commands depend on your Linux distribution
