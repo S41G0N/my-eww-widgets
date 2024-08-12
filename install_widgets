@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+
+import os
+import shutil
+
+def main():
+    # Create the destination directory
+    dest_dir = os.path.expanduser("~/.config/eww")
+    os.makedirs(dest_dir, exist_ok=True)
+
+    # Copy directories to ~/.config/eww/
+    print(f"Copying project files to {dest_dir}...")
+    for dir_name in ["bar", "dock"]:
+        shutil.copytree(dir_name, os.path.join(dest_dir, dir_name), dirs_exist_ok=True)
+
+    print(f"Eww widgets copied into {dest_dir}!")
+
+if __name__ == "__main__":
+    main()

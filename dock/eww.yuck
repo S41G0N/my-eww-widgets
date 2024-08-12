@@ -1,0 +1,30 @@
+;; Dock variables
+(defvar DOCK_APPS '[
+  { "name": "Terminal", "icon": "kitty", "exec": "kitty" },
+  { "name": "Browser", "icon": "brave", "exec": "brave-bin" },
+  { "name": "File Manager", "icon": "thunar", "exec": "thunar" },
+  { "name": "Editor", "icon": "nvim", "exec": "nvim" }
+]')
+
+(defvar ICONS "/usr/share/icons/candy-icons/apps/scalable")
+(defvar LAUNCH_APP "scripts/launch_app")
+
+(defwidget dock []
+    (box :class "dock" :orientation "v" :space-evenly false
+      (for app in DOCK_APPS
+        (button 
+          :class "dock-icon" 
+          :tooltip "${app.name}"
+          :onclick "${LAUNCH_APP} ${app.exec}"
+          (image 
+            :path "${ICONS}/${app.icon}.svg"
+            :image-width 40)))
+            (button :onclick "scripts/toggle_dock")))
+
+(defwindow dock [height]
+  :monitor 0
+  :windowtype "dock"
+  :geometry (geometry :height {height} :anchor "center right")
+  :exclusive true
+  :stacking "fg"
+  (dock))

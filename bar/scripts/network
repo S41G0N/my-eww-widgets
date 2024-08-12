@@ -1,0 +1,29 @@
+#!/bin/bash
+
+
+CURRENT_NETWORK=$(iwctl station wlan0 show | sed -n 's/^.*Connected network[[:space:]]*//p')
+WIFI_BLOCK=$(rfkill list wifi | grep 'yes')
+
+## Toggle state
+toggle() {
+  if [ -z "$WIFI_BLOCK" ]; then
+    rfkill block wifi
+  else
+    rfkill unblock wifi
+  fi
+}
+
+## Get Status
+get_status() {  
+  if [ -z "$CURRENT_NETWORK" ];then
+    echo "DISCONNECTED"
+  else
+    echo $CURRENT_NETWORK
+  fi
+}
+
+if [ "$1" = "--toggle" ]; then
+  toggle
+else
+  get_status
+fi

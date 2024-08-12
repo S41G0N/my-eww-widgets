@@ -1,0 +1,59 @@
+#!/usr/bin/env lua
+
+local socket = require("socket")
+local json = require("cjson")
+
+local function get_network_stats()
+    local interface = "wlan0"
+    local interval = 0.1
+    local samples = 3
+
+    local function read_stats()
+        local rx, tx = 0, 0
+        local f = io.open("/proc/net/dev", "r")
+        if not f then
+            return nil, "Failed to open /proc/net/dev"
+        end
+        for line in f:lines() do
+            if line:match(interface .. ":") then
+                rx = tonumber(line:match(":%s*(%d+)"))
+                tx = tonumber(line:match(":%s*%d+%s*%d+%s*%d+%s*%d+%s*%d+%s*%d+%s*%d+%s*%d+%s*(%d+)"))
+                break
+            end
+        end
+        f:close()
+        if rx == 0 and tx == 0 then
+            return nil, "Interface " .. interface .. " not found"
+        end
+        return rx, tx
+    end
+
+    local total_download, total_upload = 0, 0
+    local prev_rx, prev_tx = read_stats()
+    if not prev_rx then
+        return json.encode({error = prev_tx})
+    end
+
+    for _ = 1, samples do
+        socket.sleep(interval)
+        local curr_rx, curr_tx = read_stats()
+        if not curr_rx then
+            return json.encode({error = curr_tx})
+        end
+        total_download = total_download + (curr_rx - prev_rx)
+        total_upload = total_upload + (curr_tx - prev_tx)
+        prev_rx, prev_tx = curr_rx, curr_tx
+    end
+
+    local download_speed = total_download / (interval * samples)
+    local upload_speed = total_upload / (interval * samples)
+
+    return json.encode({
+        download = math.floor(download_speed * 10 + 0.5) / 10,
+        upload = math.floor(upload_speed * 10 + 0.5) / 10,
+        units = "bytes/second"
+    })
+end
+
+print(get_network_stats())
+
