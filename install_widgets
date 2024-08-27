@@ -10,7 +10,7 @@ def main():
 
     # Copy directories to ~/.config/eww/
     print(f"Copying project files to {dest_dir}...")
-    for dir_name in ["bar", "dock"]:
+    for dir_name in ["bar", "vertical_bar"]:
         shutil.copytree(dir_name, os.path.join(dest_dir, dir_name), dirs_exist_ok=True)
 
     print(f"Eww widgets copied into {dest_dir}!")

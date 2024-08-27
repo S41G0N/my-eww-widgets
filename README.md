@@ -7,8 +7,9 @@ A custom bar which provides simple workspace manager, displays time and provides
 It also tracks many more things such as disk space, memory usage and battery.
 
 ![Main Bar](img/demo_bar.gif)
-### DOCK
-A custom dock which displays the most commonly used apps, buttons are clickable and will launch the selected applications.
+### VERTICAL BAR
+A vertical bar which contains most of the features of 'BAR', but contains a list of clickable buttons to launch your favourite apps.
+It basically contains a small app launcher
 
 ## Project Prerequisites & Setup
 These are the prerequisites used by the essential scripts, make sure to install them to make the widgets work properly:

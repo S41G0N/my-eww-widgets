@@ -2,19 +2,49 @@
 (deflisten CURRENT_WORKSPACE :initial "[]" "scripts/current_workspace")
 (defvar RUN_EWW "eww -c ~/.config/eww/vertical_bar")
 
+;; Dock variables
+(defvar DOCK_APPS '[
+  { "name": "Terminal", "icon": "kitty", "exec": "kitty" },
+  { "name": "Browser", "icon": "brave", "exec": "brave-bin" },
+  { "name": "File Manager", "icon": "thunar", "exec": "thunar" },
+  { "name": "Editor", "icon": "nvim", "exec": "nvim" }
+]')
+
+(defvar ICONS "/usr/share/icons/candy-icons/apps/scalable")
+(defvar LAUNCH_APP "scripts/launch_app")
+
+(defwidget dock []
+  (box :class "dock" :orientation "v" :space-evenly false
+   ; (eventbox
+   ;   :onhover "${RUN_EWW} update FOCUS_TEXTBOX=true"
+   ;   :onhoverlost "${RUN_EWW} update FOCUS_TEXTBOX=false"
+
+   ;   (input
+   ;     :value "HELLO"
+   ;     :onaccept "scripts/toggle_dock"
+   ;     :focusable true))
+
+    (for app in DOCK_APPS
+      (button 
+        :class "dock-icon" 
+        :tooltip "${app.name}"
+        :onclick "${LAUNCH_APP} ${app.exec}"
+        (image :path "${ICONS}/${app.icon}.svg" :image-width 20)))))
+
+
 (defwidget workspaces []
   (box :space-evenly false :orientation "v"
       (box :class "workspaces" :orientation "v"
         (label :visible false :text "${CURRENT_WORKSPACE}")
         (for workspace in WORKSPACES_LIST
-            (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
-              (box :class "default-workspace 
-                ${workspace.id == CURRENT_WORKSPACE[0] ? "firstScreen" : ""} 
-                ${workspace.id == CURRENT_WORKSPACE[1] ? "secondScreen" : ""} 
-                ${workspace.id == CURRENT_WORKSPACE[2] ? "thirdScreen" : ""} 
-                ${workspace.id == CURRENT_WORKSPACE[3] ? "fourthScreen" : ""} 
-                ${workspace.windows[0] > 0 ? "occupiedWindow" : ""}"
-                (label :text "${workspace.id}")))))))
+          (button :onclick "hyprctl dispatch workspace ${workspace.id}" 
+            (box :class "default-workspace 
+              ${workspace.id == CURRENT_WORKSPACE[0] ? "firstScreen" : ""} 
+              ${workspace.id == CURRENT_WORKSPACE[1] ? "secondScreen" : ""} 
+              ${workspace.id == CURRENT_WORKSPACE[2] ? "thirdScreen" : ""} 
+              ${workspace.id == CURRENT_WORKSPACE[3] ? "fourthScreen" : ""} 
+              ${workspace.windows[0] > 0 ? "occupiedWindow" : ""}"
+              (label :text "${workspace.id}")))))))
 
 (defwindow vertical_bar
   :monitor 0
@@ -22,4 +52,7 @@
   :stacking "fg"
   :windowtype "dock"
   :exclusive true
-  (workspaces))
+  (box :space-evenly false :orientation "v"
+    (workspaces)
+    (dock)))
+
