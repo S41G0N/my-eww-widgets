@@ -1,0 +1,19 @@
+#!/usr/bin/env lua
+
+-- Load eww configuration from user's home directory
+local RUN_EWW = "eww -c " .. os.getenv("HOME") .. "/.config/eww/vertical_bar"
+
+local function close_vertical_bar()
+	return os.execute(RUN_EWW .. " close vertical_bar")
+end
+
+local function open_vertical_bar()
+	return os.execute(RUN_EWW .. " open vertical_bar")
+end
+
+local failed = 0
+
+-- Attempt to close the vertical_bar, and if it fails, open it
+if close_vertical_bar() ~= failed then
+	open_vertical_bar()
+end

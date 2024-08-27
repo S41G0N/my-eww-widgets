@@ -1,6 +1,14 @@
 # my-eww-widgets
-## Getting Started
-This is a collection of my custom widgets in [eww](https://github.com/elkowar/eww). Feel free to use them and modify them according to your wishes.
+A collection of custom widgets in [eww](https://github.com/elkowar/eww). Feel free to use them and modify them according to your wishes.
+
+## Widgets
+### BAR
+A custom bar which provides simple workspace manager, displays time and provides the ability to set display brightness, speakers and microphone volume and input sensitivity.
+It also tracks many more things such as disk space, memory usage and battery.
+
+![Main Bar](img/demo_bar.gif)
+### DOCK
+A custom dock which displays the most commonly used apps, buttons are clickable and will launch the selected applications.
 
 ## Project Prerequisites & Setup
 These are the prerequisites used by the essential scripts, make sure to install them to make the widgets work properly:
@@ -35,11 +43,3 @@ Ensure you have these tools installed on your system to proceed with the setup a
    ```
 5. Restart Hyprland or log out and log back in to apply the changes.
 
-## Widgets
-### BAR
-A custom bar which provides simple workspace manager, displays time and provides the ability to set display brightness, speakers and microphone volume and input sensitivity.
-It also tracks many more things such as disk space, memory usage and battery.
-
-![Main Bar](img/demo_bar.gif)
-### DOCK
-A custom dock which displays the most commonly used apps, buttons are clickable and will launch the selected applications.

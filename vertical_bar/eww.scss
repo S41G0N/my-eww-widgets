@@ -1,0 +1,42 @@
+@import "colors.scss";
+
+*{
+  font-family: 'JetBrains Mono ExtraBold';
+  font-size:1rem;
+}
+
+.workspaces button {
+  padding: 2px;
+  border:1px;
+}
+
+.workspaces button:hover {
+  background-color: $catpuccin-red;
+}
+
+.default-workspace {
+  background-color: $workspace-background-blue;
+  border-radius:3px;
+}
+
+.occupiedWindow {
+  background-color: $catpuccin-red;
+  color: black;
+}
+
+.firstScreen{
+  background-color: pink;
+  color: $main-container-blue;
+}
+.secondScreen{
+  background-color: #fa8072;
+  color: $main-container-blue;
+}
+.thirdScreen{
+  background-color: #dddddd;
+  color: $main-container-blue;
+}
+.fourthScreen{
+  background-color: #ffa07a;
+  color: $main-container-blue;
+}
